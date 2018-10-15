@@ -170,7 +170,7 @@ static __always_inline u8 common_bits(const struct allowedips_node *node,
 {
 	if (bits == 32)
 		return 32U - fls(*(const u32 *)node->bits ^ *(const u32 *)key);
-	else if (bits == 128)
+	if (bits == 128)
 		return 128U - fls128(
 			*(const u64 *)&node->bits[0] ^ *(const u64 *)&key[0],
 			*(const u64 *)&node->bits[8] ^ *(const u64 *)&key[8]);
@@ -394,7 +394,7 @@ struct wg_peer *wg_allowedips_lookup_dst(struct allowedips *table,
 {
 	if (skb->protocol == htons(ETH_P_IP))
 		return lookup(table->root4, 32, &ip_hdr(skb)->daddr);
-	else if (skb->protocol == htons(ETH_P_IPV6))
+	if (skb->protocol == htons(ETH_P_IPV6))
 		return lookup(table->root6, 128, &ipv6_hdr(skb)->daddr);
 	return NULL;
 }
@@ -405,7 +405,7 @@ struct wg_peer *wg_allowedips_lookup_src(struct allowedips *table,
 {
 	if (skb->protocol == htons(ETH_P_IP))
 		return lookup(table->root4, 32, &ip_hdr(skb)->saddr);
-	else if (skb->protocol == htons(ETH_P_IPV6))
+	if (skb->protocol == htons(ETH_P_IPV6))
 		return lookup(table->root6, 128, &ipv6_hdr(skb)->saddr);
 	return NULL;
 }

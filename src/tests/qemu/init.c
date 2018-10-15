@@ -173,7 +173,7 @@ static void launch_tests(void)
 	pid = fork();
 	if (pid == -1)
 		panic("fork");
-	else if (pid == 0) {
+	if (pid == 0) {
 		execl("/init.sh", "init", NULL);
 		panic("exec");
 	}

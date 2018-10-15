@@ -459,7 +459,7 @@ static int parse_infomsg(const struct nlattr *attr, void *data)
 
 	if (mnl_attr_get_type(attr) == IFLA_LINKINFO)
 		return mnl_attr_parse_nested(attr, parse_linkinfo, data);
-	else if (mnl_attr_get_type(attr) == IFLA_IFNAME)
+	if (mnl_attr_get_type(attr) == IFLA_IFNAME)
 		buffer->next = strdup(mnl_attr_get_str(attr));
 	return MNL_CB_OK;
 }
