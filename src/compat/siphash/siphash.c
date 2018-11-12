@@ -15,9 +15,9 @@
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3, 14, 0)
 #ifdef __LITTLE_ENDIAN
-#define bytemask_from_count(cnt)	(~(~0ul << (cnt)*8))
+#define bytemask_from_count(cnt) (~(~0ul << (cnt)*8))
 #else
-#define bytemask_from_count(cnt)	(~(~0ul >> (cnt)*8))
+#define bytemask_from_count(cnt) (~(~0ul >> (cnt)*8))
 #endif
 #endif
 
@@ -26,35 +26,45 @@
 #include <asm/word-at-a-time.h>
 #endif
 
-#define SIPROUND \
-	do { \
-	v0 += v1; v1 = rol64(v1, 13); v1 ^= v0; v0 = rol64(v0, 32); \
-	v2 += v3; v3 = rol64(v3, 16); v3 ^= v2; \
-	v0 += v3; v3 = rol64(v3, 21); v3 ^= v0; \
-	v2 += v1; v1 = rol64(v1, 17); v1 ^= v2; v2 = rol64(v2, 32); \
+#define SIPROUND                    \
+	do {                        \
+		v0 += v1;           \
+		v1 = rol64(v1, 13); \
+		v1 ^= v0;           \
+		v0 = rol64(v0, 32); \
+		v2 += v3;           \
+		v3 = rol64(v3, 16); \
+		v3 ^= v2;           \
+		v0 += v3;           \
+		v3 = rol64(v3, 21); \
+		v3 ^= v0;           \
+		v2 += v1;           \
+		v1 = rol64(v1, 17); \
+		v1 ^= v2;           \
+		v2 = rol64(v2, 32); \
 	} while (0)
 
-#define PREAMBLE(len) \
+#define PREAMBLE(len)                   \
 	u64 v0 = 0x736f6d6570736575ULL; \
 	u64 v1 = 0x646f72616e646f6dULL; \
 	u64 v2 = 0x6c7967656e657261ULL; \
 	u64 v3 = 0x7465646279746573ULL; \
-	u64 b = ((u64)(len)) << 56; \
-	v3 ^= key->key[1]; \
-	v2 ^= key->key[0]; \
-	v1 ^= key->key[1]; \
+	u64 b = ((u64)(len)) << 56;     \
+	v3 ^= key->key[1];              \
+	v2 ^= key->key[0];              \
+	v1 ^= key->key[1];              \
 	v0 ^= key->key[0];
 
-#define POSTAMBLE \
-	v3 ^= b; \
-	SIPROUND; \
-	SIPROUND; \
-	v0 ^= b; \
+#define POSTAMBLE   \
+	v3 ^= b;    \
+	SIPROUND;   \
+	SIPROUND;   \
+	v0 ^= b;    \
 	v2 ^= 0xff; \
-	SIPROUND; \
-	SIPROUND; \
-	SIPROUND; \
-	SIPROUND; \
+	SIPROUND;   \
+	SIPROUND;   \
+	SIPROUND;   \
+	SIPROUND;   \
 	return (v0 ^ v1) ^ (v2 ^ v3);
 
 u64 __siphash_aligned(const void *data, size_t len, const siphash_key_t *key)
@@ -76,13 +86,22 @@ u64 __siphash_aligned(const void *data, size_t len, const siphash_key_t *key)
 						  bytemask_from_count(left)));
 #else
 	switch (left) {
-	case 7: b |= ((u64)end[6]) << 48;
-	case 6: b |= ((u64)end[5]) << 40;
-	case 5: b |= ((u64)end[4]) << 32;
-	case 4: b |= le32_to_cpup(data); break;
-	case 3: b |= ((u64)end[2]) << 16;
-	case 2: b |= le16_to_cpup(data); break;
-	case 1: b |= end[0];
+	case 7:
+		b |= ((u64)end[6]) << 48;
+	case 6:
+		b |= ((u64)end[5]) << 40;
+	case 5:
+		b |= ((u64)end[4]) << 32;
+	case 4:
+		b |= le32_to_cpup(data);
+		break;
+	case 3:
+		b |= ((u64)end[2]) << 16;
+	case 2:
+		b |= le16_to_cpup(data);
+		break;
+	case 1:
+		b |= end[0];
 	}
 #endif
 	POSTAMBLE
@@ -108,13 +127,22 @@ u64 __siphash_unaligned(const void *data, size_t len, const siphash_key_t *key)
 						  bytemask_from_count(left)));
 #else
 	switch (left) {
-	case 7: b |= ((u64)end[6]) << 48;
-	case 6: b |= ((u64)end[5]) << 40;
-	case 5: b |= ((u64)end[4]) << 32;
-	case 4: b |= get_unaligned_le32(end); break;
-	case 3: b |= ((u64)end[2]) << 16;
-	case 2: b |= get_unaligned_le16(end); break;
-	case 1: b |= end[0];
+	case 7:
+		b |= ((u64)end[6]) << 48;
+	case 6:
+		b |= ((u64)end[5]) << 40;
+	case 5:
+		b |= ((u64)end[4]) << 32;
+	case 4:
+		b |= get_unaligned_le32(end);
+		break;
+	case 3:
+		b |= ((u64)end[2]) << 16;
+	case 2:
+		b |= get_unaligned_le16(end);
+		break;
+	case 1:
+		b |= end[0];
 	}
 #endif
 	POSTAMBLE
@@ -240,14 +268,14 @@ u64 siphash_3u32(const u32 first, const u32 second, const u32 third,
 
 #define HSIPROUND SIPROUND
 #define HPREAMBLE(len) PREAMBLE(len)
-#define HPOSTAMBLE \
-	v3 ^= b; \
-	HSIPROUND; \
-	v0 ^= b; \
+#define HPOSTAMBLE  \
+	v3 ^= b;    \
+	HSIPROUND;  \
+	v0 ^= b;    \
 	v2 ^= 0xff; \
-	HSIPROUND; \
-	HSIPROUND; \
-	HSIPROUND; \
+	HSIPROUND;  \
+	HSIPROUND;  \
+	HSIPROUND;  \
 	return (v0 ^ v1) ^ (v2 ^ v3);
 
 u32 __hsiphash_aligned(const void *data, size_t len, const hsiphash_key_t *key)
@@ -268,13 +296,22 @@ u32 __hsiphash_aligned(const void *data, size_t len, const hsiphash_key_t *key)
 						  bytemask_from_count(left)));
 #else
 	switch (left) {
-	case 7: b |= ((u64)end[6]) << 48;
-	case 6: b |= ((u64)end[5]) << 40;
-	case 5: b |= ((u64)end[4]) << 32;
-	case 4: b |= le32_to_cpup(data); break;
-	case 3: b |= ((u64)end[2]) << 16;
-	case 2: b |= le16_to_cpup(data); break;
-	case 1: b |= end[0];
+	case 7:
+		b |= ((u64)end[6]) << 48;
+	case 6:
+		b |= ((u64)end[5]) << 40;
+	case 5:
+		b |= ((u64)end[4]) << 32;
+	case 4:
+		b |= le32_to_cpup(data);
+		break;
+	case 3:
+		b |= ((u64)end[2]) << 16;
+	case 2:
+		b |= le16_to_cpup(data);
+		break;
+	case 1:
+		b |= end[0];
 	}
 #endif
 	HPOSTAMBLE
@@ -300,13 +337,22 @@ u32 __hsiphash_unaligned(const void *data, size_t len,
 						  bytemask_from_count(left)));
 #else
 	switch (left) {
-	case 7: b |= ((u64)end[6]) << 48;
-	case 6: b |= ((u64)end[5]) << 40;
-	case 5: b |= ((u64)end[4]) << 32;
-	case 4: b |= get_unaligned_le32(end); break;
-	case 3: b |= ((u64)end[2]) << 16;
-	case 2: b |= get_unaligned_le16(end); break;
-	case 1: b |= end[0];
+	case 7:
+		b |= ((u64)end[6]) << 48;
+	case 6:
+		b |= ((u64)end[5]) << 40;
+	case 5:
+		b |= ((u64)end[4]) << 32;
+	case 4:
+		b |= get_unaligned_le32(end);
+		break;
+	case 3:
+		b |= ((u64)end[2]) << 16;
+	case 2:
+		b |= get_unaligned_le16(end);
+		break;
+	case 1:
+		b |= end[0];
 	}
 #endif
 	HPOSTAMBLE
@@ -383,33 +429,43 @@ u32 hsiphash_4u32(const u32 first, const u32 second, const u32 third,
 	HPOSTAMBLE
 }
 #else
-#define HSIPROUND \
-	do { \
-	v0 += v1; v1 = rol32(v1, 5); v1 ^= v0; v0 = rol32(v0, 16); \
-	v2 += v3; v3 = rol32(v3, 8); v3 ^= v2; \
-	v0 += v3; v3 = rol32(v3, 7); v3 ^= v0; \
-	v2 += v1; v1 = rol32(v1, 13); v1 ^= v2; v2 = rol32(v2, 16); \
+#define HSIPROUND                   \
+	do {                        \
+		v0 += v1;           \
+		v1 = rol32(v1, 5);  \
+		v1 ^= v0;           \
+		v0 = rol32(v0, 16); \
+		v2 += v3;           \
+		v3 = rol32(v3, 8);  \
+		v3 ^= v2;           \
+		v0 += v3;           \
+		v3 = rol32(v3, 7);  \
+		v3 ^= v0;           \
+		v2 += v1;           \
+		v1 = rol32(v1, 13); \
+		v1 ^= v2;           \
+		v2 = rol32(v2, 16); \
 	} while (0)
 
-#define HPREAMBLE(len) \
-	u32 v0 = 0; \
-	u32 v1 = 0; \
-	u32 v2 = 0x6c796765U; \
-	u32 v3 = 0x74656462U; \
+#define HPREAMBLE(len)              \
+	u32 v0 = 0;                 \
+	u32 v1 = 0;                 \
+	u32 v2 = 0x6c796765U;       \
+	u32 v3 = 0x74656462U;       \
 	u32 b = ((u32)(len)) << 24; \
-	v3 ^= key->key[1]; \
-	v2 ^= key->key[0]; \
-	v1 ^= key->key[1]; \
+	v3 ^= key->key[1];          \
+	v2 ^= key->key[0];          \
+	v1 ^= key->key[1];          \
 	v0 ^= key->key[0];
 
-#define HPOSTAMBLE \
-	v3 ^= b; \
-	HSIPROUND; \
-	v0 ^= b; \
+#define HPOSTAMBLE  \
+	v3 ^= b;    \
+	HSIPROUND;  \
+	v0 ^= b;    \
 	v2 ^= 0xff; \
-	HSIPROUND; \
-	HSIPROUND; \
-	HSIPROUND; \
+	HSIPROUND;  \
+	HSIPROUND;  \
+	HSIPROUND;  \
 	return v1 ^ v3;
 
 u32 __hsiphash_aligned(const void *data, size_t len, const hsiphash_key_t *key)
@@ -425,9 +481,13 @@ u32 __hsiphash_aligned(const void *data, size_t len, const hsiphash_key_t *key)
 		v0 ^= m;
 	}
 	switch (left) {
-	case 3: b |= ((u32)end[2]) << 16;
-	case 2: b |= le16_to_cpup(data); break;
-	case 1: b |= end[0];
+	case 3:
+		b |= ((u32)end[2]) << 16;
+	case 2:
+		b |= le16_to_cpup(data);
+		break;
+	case 1:
+		b |= end[0];
 	}
 	HPOSTAMBLE
 }
@@ -447,9 +507,13 @@ u32 __hsiphash_unaligned(const void *data, size_t len,
 		v0 ^= m;
 	}
 	switch (left) {
-	case 3: b |= ((u32)end[2]) << 16;
-	case 2: b |= get_unaligned_le16(end); break;
-	case 1: b |= end[0];
+	case 3:
+		b |= ((u32)end[2]) << 16;
+	case 2:
+		b |= get_unaligned_le16(end);
+		break;
+	case 1:
+		b |= end[0];
 	}
 	HPOSTAMBLE
 }

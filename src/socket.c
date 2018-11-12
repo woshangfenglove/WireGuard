@@ -20,13 +20,11 @@
 static int send4(struct wg_device *wg, struct sk_buff *skb,
 		 struct endpoint *endpoint, u8 ds, struct dst_cache *cache)
 {
-	struct flowi4 fl = {
-		.saddr = endpoint->src4.s_addr,
-		.daddr = endpoint->addr4.sin_addr.s_addr,
-		.fl4_dport = endpoint->addr4.sin_port,
-		.flowi4_mark = wg->fwmark,
-		.flowi4_proto = IPPROTO_UDP
-	};
+	struct flowi4 fl = { .saddr = endpoint->src4.s_addr,
+			     .daddr = endpoint->addr4.sin_addr.s_addr,
+			     .fl4_dport = endpoint->addr4.sin_port,
+			     .flowi4_mark = wg->fwmark,
+			     .flowi4_proto = IPPROTO_UDP };
 	struct rtable *rt = NULL;
 	struct sock *sock;
 	int ret = 0;
@@ -59,9 +57,10 @@ static int send4(struct wg_device *wg, struct sk_buff *skb,
 				dst_cache_reset(cache);
 		}
 		rt = ip_route_output_flow(sock_net(sock), &fl, sock);
-		if (unlikely(endpoint->src_if4 && ((IS_ERR(rt) &&
-			     PTR_ERR(rt) == -EINVAL) || (!IS_ERR(rt) &&
-			     rt->dst.dev->ifindex != endpoint->src_if4)))) {
+		if (unlikely(endpoint->src_if4 &&
+			     ((IS_ERR(rt) && PTR_ERR(rt) == -EINVAL) ||
+			      (!IS_ERR(rt) &&
+			       rt->dst.dev->ifindex != endpoint->src_if4)))) {
 			endpoint->src4.s_addr = 0;
 			*(__force __be32 *)&endpoint->src_if4 = 0;
 			fl.saddr = 0;
@@ -73,14 +72,16 @@ static int send4(struct wg_device *wg, struct sk_buff *skb,
 		}
 		if (unlikely(IS_ERR(rt))) {
 			ret = PTR_ERR(rt);
-			net_dbg_ratelimited("%s: No route to %pISpfsc, error %d\n",
-					    wg->dev->name, &endpoint->addr, ret);
+			net_dbg_ratelimited(
+				"%s: No route to %pISpfsc, error %d\n",
+				wg->dev->name, &endpoint->addr, ret);
 			goto err;
 		} else if (unlikely(rt->dst.dev == skb->dev)) {
 			ip_rt_put(rt);
 			ret = -ELOOP;
-			net_dbg_ratelimited("%s: Avoiding routing loop to %pISpfsc\n",
-					    wg->dev->name, &endpoint->addr);
+			net_dbg_ratelimited(
+				"%s: Avoiding routing loop to %pISpfsc\n",
+				wg->dev->name, &endpoint->addr);
 			goto err;
 		}
 		if (cache)
@@ -135,7 +136,8 @@ static int send6(struct wg_device *wg, struct sk_buff *skb,
 	if (!dst) {
 		security_sk_classify_flow(sock, flowi6_to_flowi(&fl));
 		if (unlikely(!ipv6_addr_any(&fl.saddr) &&
-			     !ipv6_chk_addr(sock_net(sock), &fl.saddr, NULL, 0))) {
+			     !ipv6_chk_addr(sock_net(sock), &fl.saddr, NULL,
+					    0))) {
 			endpoint->src6 = fl.saddr = in6addr_any;
 			if (cache)
 				dst_cache_reset(cache);
@@ -143,14 +145,16 @@ static int send6(struct wg_device *wg, struct sk_buff *skb,
 		ret = ipv6_stub->ipv6_dst_lookup(sock_net(sock), sock, &dst,
 						 &fl);
 		if (unlikely(ret)) {
-			net_dbg_ratelimited("%s: No route to %pISpfsc, error %d\n",
-					    wg->dev->name, &endpoint->addr, ret);
+			net_dbg_ratelimited(
+				"%s: No route to %pISpfsc, error %d\n",
+				wg->dev->name, &endpoint->addr, ret);
 			goto err;
 		} else if (unlikely(dst->dev == skb->dev)) {
 			dst_release(dst);
 			ret = -ELOOP;
-			net_dbg_ratelimited("%s: Avoiding routing loop to %pISpfsc\n",
-					    wg->dev->name, &endpoint->addr);
+			net_dbg_ratelimited(
+				"%s: Avoiding routing loop to %pISpfsc\n",
+				wg->dev->name, &endpoint->addr);
 			goto err;
 		}
 		if (cache)
@@ -355,27 +359,21 @@ static void set_sock_opts(struct socket *sock)
 int wg_socket_init(struct wg_device *wg, u16 port)
 {
 	int ret;
-	struct udp_tunnel_sock_cfg cfg = {
-		.sk_user_data = wg,
-		.encap_type = 1,
-		.encap_rcv = wg_receive
-	};
+	struct udp_tunnel_sock_cfg cfg = { .sk_user_data = wg,
+					   .encap_type = 1,
+					   .encap_rcv = wg_receive };
 	struct socket *new4 = NULL, *new6 = NULL;
-	struct udp_port_cfg port4 = {
-		.family = AF_INET,
-		.local_ip.s_addr = htonl(INADDR_ANY),
-		.local_udp_port = htons(port),
-		.use_udp_checksums = true
-	};
+	struct udp_port_cfg port4 = { .family = AF_INET,
+				      .local_ip.s_addr = htonl(INADDR_ANY),
+				      .local_udp_port = htons(port),
+				      .use_udp_checksums = true };
 #if IS_ENABLED(CONFIG_IPV6)
 	int retries = 0;
-	struct udp_port_cfg port6 = {
-		.family = AF_INET6,
-		.local_ip6 = IN6ADDR_ANY_INIT,
-		.use_udp6_tx_checksums = true,
-		.use_udp6_rx_checksums = true,
-		.ipv6_v6only = true
-	};
+	struct udp_port_cfg port6 = { .family = AF_INET6,
+				      .local_ip6 = IN6ADDR_ANY_INIT,
+				      .use_udp6_tx_checksums = true,
+				      .use_udp6_rx_checksums = true,
+				      .ipv6_v6only = true };
 #endif
 
 #if IS_ENABLED(CONFIG_IPV6)
@@ -417,10 +415,10 @@ void wg_socket_reinit(struct wg_device *wg, struct sock *new4,
 	struct sock *old4, *old6;
 
 	mutex_lock(&wg->socket_update_lock);
-	old4 = rcu_dereference_protected(wg->sock4,
-				lockdep_is_held(&wg->socket_update_lock));
-	old6 = rcu_dereference_protected(wg->sock6,
-				lockdep_is_held(&wg->socket_update_lock));
+	old4 = rcu_dereference_protected(
+		wg->sock4, lockdep_is_held(&wg->socket_update_lock));
+	old6 = rcu_dereference_protected(
+		wg->sock6, lockdep_is_held(&wg->socket_update_lock));
 	rcu_assign_pointer(wg->sock4, new4);
 	rcu_assign_pointer(wg->sock6, new6);
 	if (new4)

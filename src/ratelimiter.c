@@ -31,12 +31,10 @@ struct ratelimiter_entry {
 	struct rcu_head rcu;
 };
 
-enum {
-	PACKETS_PER_SECOND = 20,
-	PACKETS_BURSTABLE = 5,
-	PACKET_COST = NSEC_PER_SEC / PACKETS_PER_SECOND,
-	TOKEN_MAX = PACKET_COST * PACKETS_BURSTABLE
-};
+enum { PACKETS_PER_SECOND = 20,
+       PACKETS_BURSTABLE = 5,
+       PACKET_COST = NSEC_PER_SEC / PACKETS_PER_SECOND,
+       TOKEN_MAX = PACKET_COST * PACKETS_BURSTABLE };
 
 static void entry_free(struct rcu_head *rcu)
 {
@@ -61,13 +59,13 @@ static void wg_ratelimiter_gc_entries(struct work_struct *work)
 
 	for (i = 0; i < table_size; ++i) {
 		spin_lock(&table_lock);
-		hlist_for_each_entry_safe(entry, temp, &table_v4[i], hash) {
+		hlist_for_each_entry_safe (entry, temp, &table_v4[i], hash) {
 			if (unlikely(!work) ||
 			    now - entry->last_time_ns > NSEC_PER_SEC)
 				entry_uninit(entry);
 		}
 #if IS_ENABLED(CONFIG_IPV6)
-		hlist_for_each_entry_safe(entry, temp, &table_v6[i], hash) {
+		hlist_for_each_entry_safe (entry, temp, &table_v6[i], hash) {
 			if (unlikely(!work) ||
 			    now - entry->last_time_ns > NSEC_PER_SEC)
 				entry_uninit(entry);
@@ -108,7 +106,7 @@ bool wg_ratelimiter_allow(struct sk_buff *skb, struct net *net)
 	else
 		return false;
 	rcu_read_lock();
-	hlist_for_each_entry_rcu(entry, bucket, hash) {
+	hlist_for_each_entry_rcu (entry, bucket, hash) {
 		if (entry->net == net && entry->ip == ip) {
 			u64 now, tokens;
 			bool ret;
@@ -170,10 +168,13 @@ int wg_ratelimiter_init(void)
 	 * we borrow their wisdom about good table sizes on different systems
 	 * dependent on RAM. This calculation here comes from there.
 	 */
-	table_size = (totalram_pages > (1U << 30) / PAGE_SIZE) ? 8192 :
-		max_t(unsigned long, 16, roundup_pow_of_two(
-			(totalram_pages << PAGE_SHIFT) /
-			(1U << 14) / sizeof(struct hlist_head)));
+	table_size =
+		(totalram_pages > (1U << 30) / PAGE_SIZE) ?
+			8192 :
+			max_t(unsigned long, 16,
+			      roundup_pow_of_two(
+				      (totalram_pages << PAGE_SHIFT) /
+				      (1U << 14) / sizeof(struct hlist_head)));
 	max_entries = table_size * 8;
 
 	table_v4 = kvzalloc(table_size * sizeof(*table_v4), GFP_KERNEL);

@@ -61,11 +61,12 @@ bool wg_noise_precompute_static_static(struct wg_peer *peer)
 	return ret;
 }
 
-bool wg_noise_handshake_init(struct noise_handshake *handshake,
-			   struct noise_static_identity *static_identity,
-			   const u8 peer_public_key[NOISE_PUBLIC_KEY_LEN],
-			   const u8 peer_preshared_key[NOISE_SYMMETRIC_KEY_LEN],
-			   struct wg_peer *peer)
+bool wg_noise_handshake_init(
+	struct noise_handshake *handshake,
+	struct noise_static_identity *static_identity,
+	const u8 peer_public_key[NOISE_PUBLIC_KEY_LEN],
+	const u8 peer_preshared_key[NOISE_SYMMETRIC_KEY_LEN],
+	struct wg_peer *peer)
 {
 	memset(handshake, 0, sizeof(*handshake));
 	init_rwsem(&handshake->lock);
@@ -93,14 +94,14 @@ static void handshake_zero(struct noise_handshake *handshake)
 void wg_noise_handshake_clear(struct noise_handshake *handshake)
 {
 	wg_index_hashtable_remove(
-			&handshake->entry.peer->device->index_hashtable,
-			&handshake->entry);
+		&handshake->entry.peer->device->index_hashtable,
+		&handshake->entry);
 	down_write(&handshake->lock);
 	handshake_zero(handshake);
 	up_write(&handshake->lock);
 	wg_index_hashtable_remove(
-			&handshake->entry.peer->device->index_hashtable,
-			&handshake->entry);
+		&handshake->entry.peer->device->index_hashtable,
+		&handshake->entry);
 }
 
 static struct noise_keypair *keypair_create(struct wg_peer *peer)
@@ -147,7 +148,8 @@ void wg_noise_keypair_put(struct noise_keypair *keypair, bool unreference_now)
 
 struct noise_keypair *wg_noise_keypair_get(struct noise_keypair *keypair)
 {
-	RCU_LOCKDEP_WARN(!rcu_read_lock_bh_held(),
+	RCU_LOCKDEP_WARN(
+		!rcu_read_lock_bh_held(),
 		"Taking noise keypair reference without holding the RCU BH read lock");
 	if (unlikely(!keypair || !kref_get_unless_zero(&keypair->refcount)))
 		return NULL;
@@ -164,17 +166,20 @@ void wg_noise_keypairs_clear(struct noise_keypairs *keypairs)
 	 * wg_noise_received_with_keypair returns early before subsequent ones
 	 * are zeroed.
 	 */
-	old = rcu_dereference_protected(keypairs->next_keypair,
+	old = rcu_dereference_protected(
+		keypairs->next_keypair,
 		lockdep_is_held(&keypairs->keypair_update_lock));
 	RCU_INIT_POINTER(keypairs->next_keypair, NULL);
 	wg_noise_keypair_put(old, true);
 
-	old = rcu_dereference_protected(keypairs->previous_keypair,
+	old = rcu_dereference_protected(
+		keypairs->previous_keypair,
 		lockdep_is_held(&keypairs->keypair_update_lock));
 	RCU_INIT_POINTER(keypairs->previous_keypair, NULL);
 	wg_noise_keypair_put(old, true);
 
-	old = rcu_dereference_protected(keypairs->current_keypair,
+	old = rcu_dereference_protected(
+		keypairs->current_keypair,
 		lockdep_is_held(&keypairs->keypair_update_lock));
 	RCU_INIT_POINTER(keypairs->current_keypair, NULL);
 	wg_noise_keypair_put(old, true);
@@ -188,11 +193,14 @@ static void add_new_keypair(struct noise_keypairs *keypairs,
 	struct noise_keypair *previous_keypair, *next_keypair, *current_keypair;
 
 	spin_lock_bh(&keypairs->keypair_update_lock);
-	previous_keypair = rcu_dereference_protected(keypairs->previous_keypair,
+	previous_keypair = rcu_dereference_protected(
+		keypairs->previous_keypair,
 		lockdep_is_held(&keypairs->keypair_update_lock));
-	next_keypair = rcu_dereference_protected(keypairs->next_keypair,
+	next_keypair = rcu_dereference_protected(
+		keypairs->next_keypair,
 		lockdep_is_held(&keypairs->keypair_update_lock));
-	current_keypair = rcu_dereference_protected(keypairs->current_keypair,
+	current_keypair = rcu_dereference_protected(
+		keypairs->current_keypair,
 		lockdep_is_held(&keypairs->keypair_update_lock));
 	if (new_keypair->i_am_the_initiator) {
 		/* If we're the initiator, it means we've sent a handshake, and
@@ -253,8 +261,10 @@ bool wg_noise_received_with_keypair(struct noise_keypairs *keypairs,
 	/* After locking, we double check that things didn't change from
 	 * beneath us.
 	 */
-	if (unlikely(received_keypair !=
-		    rcu_dereference_protected(keypairs->next_keypair,
+	if (unlikely(
+		    received_keypair !=
+		    rcu_dereference_protected(
+			    keypairs->next_keypair,
 			    lockdep_is_held(&keypairs->keypair_update_lock)))) {
 		spin_unlock_bh(&keypairs->keypair_update_lock);
 		return false;
@@ -264,10 +274,13 @@ bool wg_noise_received_with_keypair(struct noise_keypairs *keypairs,
 	 * into the current, the current into the previous, and get rid of
 	 * the old previous.
 	 */
-	old_keypair = rcu_dereference_protected(keypairs->previous_keypair,
+	old_keypair = rcu_dereference_protected(
+		keypairs->previous_keypair,
 		lockdep_is_held(&keypairs->keypair_update_lock));
-	rcu_assign_pointer(keypairs->previous_keypair,
-		rcu_dereference_protected(keypairs->current_keypair,
+	rcu_assign_pointer(
+		keypairs->previous_keypair,
+		rcu_dereference_protected(
+			keypairs->current_keypair,
 			lockdep_is_held(&keypairs->keypair_update_lock)));
 	wg_noise_keypair_put(old_keypair, true);
 	rcu_assign_pointer(keypairs->current_keypair, received_keypair);
@@ -455,9 +468,9 @@ static void tai64n_now(u8 output[NOISE_TIMESTAMP_LEN])
 	*(__be32 *)(output + sizeof(__be64)) = cpu_to_be32(now.tv_nsec);
 }
 
-bool
-wg_noise_handshake_create_initiation(struct message_handshake_initiation *dst,
-				     struct noise_handshake *handshake)
+bool wg_noise_handshake_create_initiation(
+	struct message_handshake_initiation *dst,
+	struct noise_handshake *handshake)
 {
 	u8 timestamp[NOISE_TIMESTAMP_LEN];
 	u8 key[NOISE_SYMMETRIC_KEY_LEN];
@@ -775,8 +788,8 @@ bool wg_noise_handshake_begin_session(struct noise_handshake *handshake,
 
 	handshake_zero(handshake);
 	rcu_read_lock_bh();
-	if (likely(!READ_ONCE(container_of(handshake, struct wg_peer,
-					   handshake)->is_dead))) {
+	if (likely(!READ_ONCE(container_of(handshake, struct wg_peer, handshake)
+				      ->is_dead))) {
 		add_new_keypair(keypairs, new_keypair);
 		net_dbg_ratelimited("%s: Keypair %llu created for peer %llu\n",
 				    handshake->entry.peer->device->dev->name,

@@ -20,18 +20,12 @@
 
 static const u8 pad0[16] = { 0 };
 
-static struct crypto_alg chacha20_alg = {
-	.cra_blocksize = 1,
-	.cra_alignmask = sizeof(u32) - 1
-};
+static struct crypto_alg chacha20_alg = { .cra_blocksize = 1,
+					  .cra_alignmask = sizeof(u32) - 1 };
 static struct crypto_blkcipher chacha20_cipher = {
-	.base = {
-		.__crt_alg = &chacha20_alg
-	}
+	.base = { .__crt_alg = &chacha20_alg }
 };
-static struct blkcipher_desc chacha20_desc = {
-	.tfm = &chacha20_cipher
-};
+static struct blkcipher_desc chacha20_desc = { .tfm = &chacha20_cipher };
 
 static inline void
 __chacha20poly1305_encrypt(u8 *dst, const u8 *src, const size_t src_len,
@@ -126,7 +120,8 @@ bool chacha20poly1305_encrypt_sg(struct scatterlist *dst,
 					chunk_len, simd_context);
 			simd_relax(simd_context);
 			ret = blkcipher_walk_done(&chacha20_desc, &walk,
-					walk.nbytes % CHACHA20_BLOCK_SIZE);
+						  walk.nbytes %
+							  CHACHA20_BLOCK_SIZE);
 		}
 		if (walk.nbytes) {
 			chacha20(&chacha20_state, walk.dst.virt.addr,
@@ -269,7 +264,8 @@ bool chacha20poly1305_decrypt_sg(struct scatterlist *dst,
 				 walk.src.virt.addr, chunk_len, simd_context);
 			simd_relax(simd_context);
 			ret = blkcipher_walk_done(&chacha20_desc, &walk,
-					walk.nbytes % CHACHA20_BLOCK_SIZE);
+						  walk.nbytes %
+							  CHACHA20_BLOCK_SIZE);
 		}
 		if (walk.nbytes) {
 			poly1305_update(&poly1305_state, walk.src.virt.addr,
@@ -292,7 +288,8 @@ bool chacha20poly1305_decrypt_sg(struct scatterlist *dst,
 
 	poly1305_final(&poly1305_state, b.computed_mac, simd_context);
 
-	scatterwalk_map_and_copy(b.read_mac, src, dst_len, POLY1305_MAC_SIZE, 0);
+	scatterwalk_map_and_copy(b.read_mac, src, dst_len, POLY1305_MAC_SIZE,
+				 0);
 	ret = crypto_memneq(b.read_mac, b.computed_mac, POLY1305_MAC_SIZE);
 err:
 	memzero_explicit(&chacha20_state, sizeof(chacha20_state));
@@ -349,8 +346,8 @@ int __init chacha20poly1305_mod_init(void)
 static int __init mod_init(void)
 #endif
 {
-	if (!selftest_run("chacha20poly1305", chacha20poly1305_selftest,
-			  NULL, 0))
+	if (!selftest_run("chacha20poly1305", chacha20poly1305_selftest, NULL,
+			  0))
 		return -ENOTRECOVERABLE;
 	return 0;
 }

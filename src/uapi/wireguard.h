@@ -134,16 +134,10 @@
 
 #define WG_KEY_LEN 32
 
-enum wg_cmd {
-	WG_CMD_GET_DEVICE,
-	WG_CMD_SET_DEVICE,
-	__WG_CMD_MAX
-};
+enum wg_cmd { WG_CMD_GET_DEVICE, WG_CMD_SET_DEVICE, __WG_CMD_MAX };
 #define WG_CMD_MAX (__WG_CMD_MAX - 1)
 
-enum wgdevice_flag {
-	WGDEVICE_F_REPLACE_PEERS = 1U << 0
-};
+enum wgdevice_flag { WGDEVICE_F_REPLACE_PEERS = 1U << 0 };
 enum wgdevice_attribute {
 	WGDEVICE_A_UNSPEC,
 	WGDEVICE_A_IFINDEX,

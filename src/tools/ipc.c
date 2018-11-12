@@ -105,7 +105,8 @@ static FILE *userspace_interface_file(const char *interface)
 	errno = EINVAL;
 	if (strchr(interface, '/'))
 		goto out;
-	ret = snprintf(addr.sun_path, sizeof(addr.sun_path), SOCK_PATH "%s" SOCK_SUFFIX, interface);
+	ret = snprintf(addr.sun_path, sizeof(addr.sun_path),
+		       SOCK_PATH "%s" SOCK_SUFFIX, interface);
 	if (ret < 0)
 		goto out;
 	ret = stat(addr.sun_path, &sbuf);
@@ -121,7 +122,8 @@ static FILE *userspace_interface_file(const char *interface)
 
 	ret = connect(fd, (struct sockaddr *)&addr, sizeof(addr));
 	if (ret < 0) {
-		if (errno == ECONNREFUSED) /* If the process is gone, we try to clean up the socket. */
+		if (errno ==
+		    ECONNREFUSED) /* If the process is gone, we try to clean up the socket. */
 			unlink(addr.sun_path);
 		goto out;
 	}
@@ -147,7 +149,8 @@ static bool userspace_has_wireguard_interface(const char *interface)
 
 	if (strchr(interface, '/'))
 		return false;
-	if (snprintf(addr.sun_path, sizeof(addr.sun_path), SOCK_PATH "%s" SOCK_SUFFIX, interface) < 0)
+	if (snprintf(addr.sun_path, sizeof(addr.sun_path),
+		     SOCK_PATH "%s" SOCK_SUFFIX, interface) < 0)
 		return false;
 	if (stat(addr.sun_path, &sbuf) < 0)
 		return false;
@@ -157,7 +160,9 @@ static bool userspace_has_wireguard_interface(const char *interface)
 	if (ret < 0)
 		return false;
 	ret = connect(fd, (struct sockaddr *)&addr, sizeof(addr));
-	if (ret < 0 && errno == ECONNREFUSED) { /* If the process is gone, we try to clean up the socket. */
+	if (ret < 0 &&
+	    errno ==
+		    ECONNREFUSED) { /* If the process is gone, we try to clean up the socket. */
 		close(fd);
 		unlink(addr.sun_path);
 		return false;
@@ -200,7 +205,8 @@ out:
 
 static int userspace_set_device(struct wgdevice *dev)
 {
-	char hex[WG_KEY_LEN_HEX], ip[INET6_ADDRSTRLEN], host[4096 + 1], service[512 + 1];
+	char hex[WG_KEY_LEN_HEX], ip[INET6_ADDRSTRLEN], host[4096 + 1],
+		service[512 + 1];
 	struct wgpeer *peer;
 	struct wgallowedip *allowedip;
 	FILE *f;
@@ -234,29 +240,39 @@ static int userspace_set_device(struct wgdevice *dev)
 			key_to_hex(hex, peer->preshared_key);
 			fprintf(f, "preshared_key=%s\n", hex);
 		}
-		if (peer->endpoint.addr.sa_family == AF_INET || peer->endpoint.addr.sa_family == AF_INET6) {
+		if (peer->endpoint.addr.sa_family == AF_INET ||
+		    peer->endpoint.addr.sa_family == AF_INET6) {
 			addr_len = 0;
 			if (peer->endpoint.addr.sa_family == AF_INET)
 				addr_len = sizeof(struct sockaddr_in);
 			else if (peer->endpoint.addr.sa_family == AF_INET6)
 				addr_len = sizeof(struct sockaddr_in6);
-			if (!getnameinfo(&peer->endpoint.addr, addr_len, host, sizeof(host), service, sizeof(service), NI_DGRAM | NI_NUMERICSERV | NI_NUMERICHOST)) {
-				if (peer->endpoint.addr.sa_family == AF_INET6 && strchr(host, ':'))
-					fprintf(f, "endpoint=[%s]:%s\n", host, service);
+			if (!getnameinfo(&peer->endpoint.addr, addr_len, host,
+					 sizeof(host), service, sizeof(service),
+					 NI_DGRAM | NI_NUMERICSERV |
+						 NI_NUMERICHOST)) {
+				if (peer->endpoint.addr.sa_family == AF_INET6 &&
+				    strchr(host, ':'))
+					fprintf(f, "endpoint=[%s]:%s\n", host,
+						service);
 				else
-					fprintf(f, "endpoint=%s:%s\n", host, service);
+					fprintf(f, "endpoint=%s:%s\n", host,
+						service);
 			}
 		}
 		if (peer->flags & WGPEER_HAS_PERSISTENT_KEEPALIVE_INTERVAL)
-			fprintf(f, "persistent_keepalive_interval=%u\n", peer->persistent_keepalive_interval);
+			fprintf(f, "persistent_keepalive_interval=%u\n",
+				peer->persistent_keepalive_interval);
 		if (peer->flags & WGPEER_REPLACE_ALLOWEDIPS)
 			fprintf(f, "replace_allowed_ips=true\n");
 		for_each_wgallowedip(peer, allowedip) {
 			if (allowedip->family == AF_INET) {
-				if (!inet_ntop(AF_INET, &allowedip->ip4, ip, INET6_ADDRSTRLEN))
+				if (!inet_ntop(AF_INET, &allowedip->ip4, ip,
+					       INET6_ADDRSTRLEN))
 					continue;
 			} else if (allowedip->family == AF_INET6) {
-				if (!inet_ntop(AF_INET6, &allowedip->ip6, ip, INET6_ADDRSTRLEN))
+				if (!inet_ntop(AF_INET6, &allowedip->ip6, ip,
+					       INET6_ADDRSTRLEN))
 					continue;
 			} else
 				continue;
@@ -273,16 +289,17 @@ static int userspace_set_device(struct wgdevice *dev)
 	return ret;
 }
 
-#define NUM(max) ({ \
-	unsigned long long num; \
-	char *end; \
-	if (!isdigit(value[0])) \
-		break; \
-	num = strtoull(value, &end, 10); \
-	if (*end || num > max) \
-		break; \
-	num; \
-})
+#define NUM(max)                                 \
+	({                                       \
+		unsigned long long num;          \
+		char *end;                       \
+		if (!isdigit(value[0]))          \
+			break;                   \
+		num = strtoull(value, &end, 10); \
+		if (*end || num > max)           \
+			break;                   \
+		num;                             \
+	})
 
 static int userspace_get_device(struct wgdevice **out, const char *interface)
 {
@@ -323,8 +340,10 @@ static int userspace_get_device(struct wgdevice **out, const char *interface)
 		if (!peer && !strcmp(key, "private_key")) {
 			if (!key_from_hex(dev->private_key, value))
 				break;
-			curve25519_generate_public(dev->public_key, dev->private_key);
-			dev->flags |= WGDEVICE_HAS_PRIVATE_KEY | WGDEVICE_HAS_PUBLIC_KEY;
+			curve25519_generate_public(dev->public_key,
+						   dev->private_key);
+			dev->flags |= WGDEVICE_HAS_PRIVATE_KEY |
+				      WGDEVICE_HAS_PUBLIC_KEY;
 		} else if (!peer && !strcmp(key, "listen_port")) {
 			dev->listen_port = NUM(0xffffU);
 			dev->flags |= WGDEVICE_HAS_LISTEN_PORT;
@@ -355,11 +374,9 @@ static int userspace_get_device(struct wgdevice **out, const char *interface)
 		} else if (peer && !strcmp(key, "endpoint")) {
 			char *begin, *end;
 			struct addrinfo *resolved;
-			struct addrinfo hints = {
-				.ai_family = AF_UNSPEC,
-				.ai_socktype = SOCK_DGRAM,
-				.ai_protocol = IPPROTO_UDP
-			};
+			struct addrinfo hints = { .ai_family = AF_UNSPEC,
+						  .ai_socktype = SOCK_DGRAM,
+						  .ai_protocol = IPPROTO_UDP };
 			if (!strlen(value))
 				break;
 			if (value[0] == '[') {
@@ -381,15 +398,21 @@ static int userspace_get_device(struct wgdevice **out, const char *interface)
 				errno = ENETUNREACH;
 				goto err;
 			}
-			if ((resolved->ai_family == AF_INET && resolved->ai_addrlen == sizeof(struct sockaddr_in)) ||
-			    (resolved->ai_family == AF_INET6 && resolved->ai_addrlen == sizeof(struct sockaddr_in6)))
-				memcpy(&peer->endpoint.addr, resolved->ai_addr, resolved->ai_addrlen);
-			else  {
+			if ((resolved->ai_family == AF_INET &&
+			     resolved->ai_addrlen ==
+				     sizeof(struct sockaddr_in)) ||
+			    (resolved->ai_family == AF_INET6 &&
+			     resolved->ai_addrlen ==
+				     sizeof(struct sockaddr_in6)))
+				memcpy(&peer->endpoint.addr, resolved->ai_addr,
+				       resolved->ai_addrlen);
+			else {
 				freeaddrinfo(resolved);
 				break;
 			}
 			freeaddrinfo(resolved);
-		} else if (peer && !strcmp(key, "persistent_keepalive_interval")) {
+		} else if (peer &&
+			   !strcmp(key, "persistent_keepalive_interval")) {
 			peer->persistent_keepalive_interval = NUM(0xffffU);
 			peer->flags |= WGPEER_HAS_PERSISTENT_KEEPALIVE_INTERVAL;
 		} else if (peer && !strcmp(key, "allowed_ip")) {
@@ -410,19 +433,27 @@ static int userspace_get_device(struct wgdevice **out, const char *interface)
 			allowedip = new_allowedip;
 			allowedip->family = AF_UNSPEC;
 			if (strchr(ip, ':')) {
-				if (inet_pton(AF_INET6, ip, &allowedip->ip6) == 1)
+				if (inet_pton(AF_INET6, ip, &allowedip->ip6) ==
+				    1)
 					allowedip->family = AF_INET6;
 			} else {
-				if (inet_pton(AF_INET, ip, &allowedip->ip4) == 1)
+				if (inet_pton(AF_INET, ip, &allowedip->ip4) ==
+				    1)
 					allowedip->family = AF_INET;
 			}
 			allowedip->cidr = strtoul(mask, &end, 10);
-			if (*end || allowedip->family == AF_UNSPEC || (allowedip->family == AF_INET6 && allowedip->cidr > 128) || (allowedip->family == AF_INET && allowedip->cidr > 32))
+			if (*end || allowedip->family == AF_UNSPEC ||
+			    (allowedip->family == AF_INET6 &&
+			     allowedip->cidr > 128) ||
+			    (allowedip->family == AF_INET &&
+			     allowedip->cidr > 32))
 				break;
 		} else if (peer && !strcmp(key, "last_handshake_time_sec"))
-			peer->last_handshake_time.tv_sec = NUM(0xffffffffffffffffULL);
+			peer->last_handshake_time.tv_sec =
+				NUM(0xffffffffffffffffULL);
 		else if (peer && !strcmp(key, "last_handshake_time_nsec"))
-			peer->last_handshake_time.tv_nsec = NUM(0xffffffffffffffffULL);
+			peer->last_handshake_time.tv_nsec =
+				NUM(0xffffffffffffffffULL);
 		else if (peer && !strcmp(key, "rx_bytes"))
 			peer->rx_bytes = NUM(0xffffffffffffffffULL);
 		else if (peer && !strcmp(key, "tx_bytes"))
@@ -438,7 +469,6 @@ err:
 	fclose(f);
 	errno = -ret;
 	return ret;
-
 }
 #undef NUM
 
@@ -448,7 +478,8 @@ static int parse_linkinfo(const struct nlattr *attr, void *data)
 {
 	struct inflatable_buffer *buffer = data;
 
-	if (mnl_attr_get_type(attr) == IFLA_INFO_KIND && !strcmp("wireguard", mnl_attr_get_str(attr)))
+	if (mnl_attr_get_type(attr) == IFLA_INFO_KIND &&
+	    !strcmp("wireguard", mnl_attr_get_str(attr)))
 		buffer->good = true;
 	return MNL_CB_OK;
 }
@@ -471,7 +502,8 @@ static int read_devices_cb(const struct nlmsghdr *nlh, void *data)
 
 	buffer->good = false;
 	buffer->next = NULL;
-	ret = mnl_attr_parse(nlh, sizeof(struct ifinfomsg), parse_infomsg, data);
+	ret = mnl_attr_parse(nlh, sizeof(struct ifinfomsg), parse_infomsg,
+			     data);
 	if (ret != MNL_CB_OK)
 		return ret;
 	ret = add_next_to_inflatable_buffer(buffer);
@@ -525,11 +557,13 @@ static int kernel_get_wireguard_interfaces(struct inflatable_buffer *buffer)
 	}
 
 another:
-	if ((len = mnl_socket_recvfrom(nl, rtnl_buffer, SOCKET_BUFFER_SIZE)) < 0) {
+	if ((len = mnl_socket_recvfrom(nl, rtnl_buffer, SOCKET_BUFFER_SIZE)) <
+	    0) {
 		ret = -errno;
 		goto cleanup;
 	}
-	if ((len = mnl_cb_run(rtnl_buffer, len, seq, portid, read_devices_cb, buffer)) < 0) {
+	if ((len = mnl_cb_run(rtnl_buffer, len, seq, portid, read_devices_cb,
+			      buffer)) < 0) {
 		/* Netlink returns NLM_F_DUMP_INTR if the set of all tunnels changed
 		 * during the dump. That's unfortunate, but is pretty common on busy
 		 * systems that are adding and removing tunnels all the time. Rather
@@ -556,7 +590,8 @@ static int kernel_set_device(struct wgdevice *dev)
 	int ret = 0;
 	struct wgpeer *peer = NULL;
 	struct wgallowedip *allowedip = NULL;
-	struct nlattr *peers_nest, *peer_nest, *allowedips_nest, *allowedip_nest;
+	struct nlattr *peers_nest, *peer_nest, *allowedips_nest,
+		*allowedip_nest;
 	struct nlmsghdr *nlh;
 	struct mnlg_socket *nlg;
 
@@ -565,16 +600,20 @@ static int kernel_set_device(struct wgdevice *dev)
 		return -errno;
 
 again:
-	nlh = mnlg_msg_prepare(nlg, WG_CMD_SET_DEVICE, NLM_F_REQUEST | NLM_F_ACK);
+	nlh = mnlg_msg_prepare(nlg, WG_CMD_SET_DEVICE,
+			       NLM_F_REQUEST | NLM_F_ACK);
 	mnl_attr_put_strz(nlh, WGDEVICE_A_IFNAME, dev->name);
 
 	if (!peer) {
 		uint32_t flags = 0;
 
 		if (dev->flags & WGDEVICE_HAS_PRIVATE_KEY)
-			mnl_attr_put(nlh, WGDEVICE_A_PRIVATE_KEY, sizeof(dev->private_key), dev->private_key);
+			mnl_attr_put(nlh, WGDEVICE_A_PRIVATE_KEY,
+				     sizeof(dev->private_key),
+				     dev->private_key);
 		if (dev->flags & WGDEVICE_HAS_LISTEN_PORT)
-			mnl_attr_put_u16(nlh, WGDEVICE_A_LISTEN_PORT, dev->listen_port);
+			mnl_attr_put_u16(nlh, WGDEVICE_A_LISTEN_PORT,
+					 dev->listen_port);
 		if (dev->flags & WGDEVICE_HAS_FWMARK)
 			mnl_attr_put_u32(nlh, WGDEVICE_A_FWMARK, dev->fwmark);
 		if (dev->flags & WGDEVICE_REPLACE_PEERS)
@@ -586,13 +625,17 @@ again:
 		goto send;
 	peers_nest = peer_nest = allowedips_nest = allowedip_nest = NULL;
 	peers_nest = mnl_attr_nest_start(nlh, WGDEVICE_A_PEERS);
-	for (peer = peer ? peer : dev->first_peer; peer; peer = peer->next_peer) {
+	for (peer = peer ? peer : dev->first_peer; peer;
+	     peer = peer->next_peer) {
 		uint32_t flags = 0;
 
-		peer_nest = mnl_attr_nest_start_check(nlh, SOCKET_BUFFER_SIZE, 0);
+		peer_nest =
+			mnl_attr_nest_start_check(nlh, SOCKET_BUFFER_SIZE, 0);
 		if (!peer_nest)
 			goto toobig_peers;
-		if (!mnl_attr_put_check(nlh, SOCKET_BUFFER_SIZE, WGPEER_A_PUBLIC_KEY, sizeof(peer->public_key), peer->public_key))
+		if (!mnl_attr_put_check(
+			    nlh, SOCKET_BUFFER_SIZE, WGPEER_A_PUBLIC_KEY,
+			    sizeof(peer->public_key), peer->public_key))
 			goto toobig_peers;
 		if (peer->flags & WGPEER_REMOVE_ME)
 			flags |= WGPEER_F_REMOVE_ME;
@@ -600,45 +643,79 @@ again:
 			if (peer->flags & WGPEER_REPLACE_ALLOWEDIPS)
 				flags |= WGPEER_F_REPLACE_ALLOWEDIPS;
 			if (peer->flags & WGPEER_HAS_PRESHARED_KEY) {
-				if (!mnl_attr_put_check(nlh, SOCKET_BUFFER_SIZE, WGPEER_A_PRESHARED_KEY, sizeof(peer->preshared_key), peer->preshared_key))
+				if (!mnl_attr_put_check(
+					    nlh, SOCKET_BUFFER_SIZE,
+					    WGPEER_A_PRESHARED_KEY,
+					    sizeof(peer->preshared_key),
+					    peer->preshared_key))
 					goto toobig_peers;
 			}
 			if (peer->endpoint.addr.sa_family == AF_INET) {
-				if (!mnl_attr_put_check(nlh, SOCKET_BUFFER_SIZE, WGPEER_A_ENDPOINT, sizeof(peer->endpoint.addr4), &peer->endpoint.addr4))
+				if (!mnl_attr_put_check(
+					    nlh, SOCKET_BUFFER_SIZE,
+					    WGPEER_A_ENDPOINT,
+					    sizeof(peer->endpoint.addr4),
+					    &peer->endpoint.addr4))
 					goto toobig_peers;
 			} else if (peer->endpoint.addr.sa_family == AF_INET6) {
-				if (!mnl_attr_put_check(nlh, SOCKET_BUFFER_SIZE, WGPEER_A_ENDPOINT, sizeof(peer->endpoint.addr6), &peer->endpoint.addr6))
+				if (!mnl_attr_put_check(
+					    nlh, SOCKET_BUFFER_SIZE,
+					    WGPEER_A_ENDPOINT,
+					    sizeof(peer->endpoint.addr6),
+					    &peer->endpoint.addr6))
 					goto toobig_peers;
 			}
-			if (peer->flags & WGPEER_HAS_PERSISTENT_KEEPALIVE_INTERVAL) {
-				if (!mnl_attr_put_u16_check(nlh, SOCKET_BUFFER_SIZE, WGPEER_A_PERSISTENT_KEEPALIVE_INTERVAL, peer->persistent_keepalive_interval))
+			if (peer->flags &
+			    WGPEER_HAS_PERSISTENT_KEEPALIVE_INTERVAL) {
+				if (!mnl_attr_put_u16_check(
+					    nlh, SOCKET_BUFFER_SIZE,
+					    WGPEER_A_PERSISTENT_KEEPALIVE_INTERVAL,
+					    peer->persistent_keepalive_interval))
 					goto toobig_peers;
 			}
 		}
 		if (flags) {
-			if (!mnl_attr_put_u32_check(nlh, SOCKET_BUFFER_SIZE, WGPEER_A_FLAGS, flags))
+			if (!mnl_attr_put_u32_check(nlh, SOCKET_BUFFER_SIZE,
+						    WGPEER_A_FLAGS, flags))
 				goto toobig_peers;
 		}
 		if (peer->first_allowedip) {
 			if (!allowedip)
 				allowedip = peer->first_allowedip;
-			allowedips_nest = mnl_attr_nest_start_check(nlh, SOCKET_BUFFER_SIZE, WGPEER_A_ALLOWEDIPS);
+			allowedips_nest = mnl_attr_nest_start_check(
+				nlh, SOCKET_BUFFER_SIZE, WGPEER_A_ALLOWEDIPS);
 			if (!allowedips_nest)
 				goto toobig_allowedips;
-			for (; allowedip; allowedip = allowedip->next_allowedip) {
-				allowedip_nest = mnl_attr_nest_start_check(nlh, SOCKET_BUFFER_SIZE, 0);
+			for (; allowedip;
+			     allowedip = allowedip->next_allowedip) {
+				allowedip_nest = mnl_attr_nest_start_check(
+					nlh, SOCKET_BUFFER_SIZE, 0);
 				if (!allowedip_nest)
 					goto toobig_allowedips;
-				if (!mnl_attr_put_u16_check(nlh, SOCKET_BUFFER_SIZE, WGALLOWEDIP_A_FAMILY, allowedip->family))
+				if (!mnl_attr_put_u16_check(
+					    nlh, SOCKET_BUFFER_SIZE,
+					    WGALLOWEDIP_A_FAMILY,
+					    allowedip->family))
 					goto toobig_allowedips;
 				if (allowedip->family == AF_INET) {
-					if (!mnl_attr_put_check(nlh, SOCKET_BUFFER_SIZE, WGALLOWEDIP_A_IPADDR, sizeof(allowedip->ip4), &allowedip->ip4))
+					if (!mnl_attr_put_check(
+						    nlh, SOCKET_BUFFER_SIZE,
+						    WGALLOWEDIP_A_IPADDR,
+						    sizeof(allowedip->ip4),
+						    &allowedip->ip4))
 						goto toobig_allowedips;
 				} else if (allowedip->family == AF_INET6) {
-					if (!mnl_attr_put_check(nlh, SOCKET_BUFFER_SIZE, WGALLOWEDIP_A_IPADDR, sizeof(allowedip->ip6), &allowedip->ip6))
+					if (!mnl_attr_put_check(
+						    nlh, SOCKET_BUFFER_SIZE,
+						    WGALLOWEDIP_A_IPADDR,
+						    sizeof(allowedip->ip6),
+						    &allowedip->ip6))
 						goto toobig_allowedips;
 				}
-				if (!mnl_attr_put_u8_check(nlh, SOCKET_BUFFER_SIZE, WGALLOWEDIP_A_CIDR_MASK, allowedip->cidr))
+				if (!mnl_attr_put_u8_check(
+					    nlh, SOCKET_BUFFER_SIZE,
+					    WGALLOWEDIP_A_CIDR_MASK,
+					    allowedip->cidr))
 					goto toobig_allowedips;
 				mnl_attr_nest_end(nlh, allowedip_nest);
 				allowedip_nest = NULL;
@@ -698,9 +775,12 @@ static int parse_allowedip(const struct nlattr *attr, void *data)
 		break;
 	case WGALLOWEDIP_A_IPADDR:
 		if (mnl_attr_get_payload_len(attr) == sizeof(allowedip->ip4))
-			memcpy(&allowedip->ip4, mnl_attr_get_payload(attr), sizeof(allowedip->ip4));
-		else if (mnl_attr_get_payload_len(attr) == sizeof(allowedip->ip6))
-			memcpy(&allowedip->ip6, mnl_attr_get_payload(attr), sizeof(allowedip->ip6));
+			memcpy(&allowedip->ip4, mnl_attr_get_payload(attr),
+			       sizeof(allowedip->ip4));
+		else if (mnl_attr_get_payload_len(attr) ==
+			 sizeof(allowedip->ip6))
+			memcpy(&allowedip->ip6, mnl_attr_get_payload(attr),
+			       sizeof(allowedip->ip6));
 		break;
 	case WGALLOWEDIP_A_CIDR_MASK:
 		if (!mnl_attr_validate(attr, MNL_TYPE_U8))
@@ -730,7 +810,8 @@ static int parse_allowedips(const struct nlattr *attr, void *data)
 	ret = mnl_attr_parse_nested(attr, parse_allowedip, new_allowedip);
 	if (!ret)
 		return ret;
-	if (!((new_allowedip->family == AF_INET && new_allowedip->cidr <= 32) || (new_allowedip->family == AF_INET6 && new_allowedip->cidr <= 128)))
+	if (!((new_allowedip->family == AF_INET && new_allowedip->cidr <= 32) ||
+	      (new_allowedip->family == AF_INET6 && new_allowedip->cidr <= 128)))
 		return MNL_CB_ERROR;
 	return MNL_CB_OK;
 }
@@ -743,14 +824,18 @@ static int parse_peer(const struct nlattr *attr, void *data)
 	case WGPEER_A_UNSPEC:
 		break;
 	case WGPEER_A_PUBLIC_KEY:
-		if (mnl_attr_get_payload_len(attr) == sizeof(peer->public_key)) {
-			memcpy(peer->public_key, mnl_attr_get_payload(attr), sizeof(peer->public_key));
+		if (mnl_attr_get_payload_len(attr) ==
+		    sizeof(peer->public_key)) {
+			memcpy(peer->public_key, mnl_attr_get_payload(attr),
+			       sizeof(peer->public_key));
 			peer->flags |= WGPEER_HAS_PUBLIC_KEY;
 		}
 		break;
 	case WGPEER_A_PRESHARED_KEY:
-		if (mnl_attr_get_payload_len(attr) == sizeof(peer->preshared_key)) {
-			memcpy(peer->preshared_key, mnl_attr_get_payload(attr), sizeof(peer->preshared_key));
+		if (mnl_attr_get_payload_len(attr) ==
+		    sizeof(peer->preshared_key)) {
+			memcpy(peer->preshared_key, mnl_attr_get_payload(attr),
+			       sizeof(peer->preshared_key));
 			if (!key_is_zero(peer->preshared_key))
 				peer->flags |= WGPEER_HAS_PRESHARED_KEY;
 		}
@@ -761,19 +846,29 @@ static int parse_peer(const struct nlattr *attr, void *data)
 		if (mnl_attr_get_payload_len(attr) < sizeof(*addr))
 			break;
 		addr = mnl_attr_get_payload(attr);
-		if (addr->sa_family == AF_INET && mnl_attr_get_payload_len(attr) == sizeof(peer->endpoint.addr4))
-			memcpy(&peer->endpoint.addr4, addr, sizeof(peer->endpoint.addr4));
-		else if (addr->sa_family == AF_INET6 && mnl_attr_get_payload_len(attr) == sizeof(peer->endpoint.addr6))
-			memcpy(&peer->endpoint.addr6, addr, sizeof(peer->endpoint.addr6));
+		if (addr->sa_family == AF_INET &&
+		    mnl_attr_get_payload_len(attr) ==
+			    sizeof(peer->endpoint.addr4))
+			memcpy(&peer->endpoint.addr4, addr,
+			       sizeof(peer->endpoint.addr4));
+		else if (addr->sa_family == AF_INET6 &&
+			 mnl_attr_get_payload_len(attr) ==
+				 sizeof(peer->endpoint.addr6))
+			memcpy(&peer->endpoint.addr6, addr,
+			       sizeof(peer->endpoint.addr6));
 		break;
 	}
 	case WGPEER_A_PERSISTENT_KEEPALIVE_INTERVAL:
 		if (!mnl_attr_validate(attr, MNL_TYPE_U16))
-			peer->persistent_keepalive_interval = mnl_attr_get_u16(attr);
+			peer->persistent_keepalive_interval =
+				mnl_attr_get_u16(attr);
 		break;
 	case WGPEER_A_LAST_HANDSHAKE_TIME:
-		if (mnl_attr_get_payload_len(attr) == sizeof(peer->last_handshake_time))
-			memcpy(&peer->last_handshake_time, mnl_attr_get_payload(attr), sizeof(peer->last_handshake_time));
+		if (mnl_attr_get_payload_len(attr) ==
+		    sizeof(peer->last_handshake_time))
+			memcpy(&peer->last_handshake_time,
+			       mnl_attr_get_payload(attr),
+			       sizeof(peer->last_handshake_time));
 		break;
 	case WGPEER_A_RX_BYTES:
 		if (!mnl_attr_validate(attr, MNL_TYPE_U64))
@@ -827,19 +922,24 @@ static int parse_device(const struct nlattr *attr, void *data)
 		break;
 	case WGDEVICE_A_IFNAME:
 		if (!mnl_attr_validate(attr, MNL_TYPE_STRING)) {
-			strncpy(device->name, mnl_attr_get_str(attr), sizeof(device->name) - 1);
+			strncpy(device->name, mnl_attr_get_str(attr),
+				sizeof(device->name) - 1);
 			device->name[sizeof(device->name) - 1] = '\0';
 		}
 		break;
 	case WGDEVICE_A_PRIVATE_KEY:
-		if (mnl_attr_get_payload_len(attr) == sizeof(device->private_key)) {
-			memcpy(device->private_key, mnl_attr_get_payload(attr), sizeof(device->private_key));
+		if (mnl_attr_get_payload_len(attr) ==
+		    sizeof(device->private_key)) {
+			memcpy(device->private_key, mnl_attr_get_payload(attr),
+			       sizeof(device->private_key));
 			device->flags |= WGDEVICE_HAS_PRIVATE_KEY;
 		}
 		break;
 	case WGDEVICE_A_PUBLIC_KEY:
-		if (mnl_attr_get_payload_len(attr) == sizeof(device->public_key)) {
-			memcpy(device->public_key, mnl_attr_get_payload(attr), sizeof(device->public_key));
+		if (mnl_attr_get_payload_len(attr) ==
+		    sizeof(device->public_key)) {
+			memcpy(device->public_key, mnl_attr_get_payload(attr),
+			       sizeof(device->public_key));
 			device->flags |= WGDEVICE_HAS_PUBLIC_KEY;
 		}
 		break;
@@ -860,7 +960,8 @@ static int parse_device(const struct nlattr *attr, void *data)
 
 static int read_device_cb(const struct nlmsghdr *nlh, void *data)
 {
-	return mnl_attr_parse(nlh, sizeof(struct genlmsghdr), parse_device, data);
+	return mnl_attr_parse(nlh, sizeof(struct genlmsghdr), parse_device,
+			      data);
 }
 
 static void coalesce_peers(struct wgdevice *device)
@@ -868,15 +969,18 @@ static void coalesce_peers(struct wgdevice *device)
 	struct wgpeer *old_next_peer, *peer = device->first_peer;
 
 	while (peer && peer->next_peer) {
-		if (memcmp(peer->public_key, peer->next_peer->public_key, WG_KEY_LEN)) {
+		if (memcmp(peer->public_key, peer->next_peer->public_key,
+			   WG_KEY_LEN)) {
 			peer = peer->next_peer;
 			continue;
 		}
 		if (!peer->first_allowedip) {
-			peer->first_allowedip = peer->next_peer->first_allowedip;
+			peer->first_allowedip =
+				peer->next_peer->first_allowedip;
 			peer->last_allowedip = peer->next_peer->last_allowedip;
 		} else {
-			peer->last_allowedip->next_allowedip = peer->next_peer->first_allowedip;
+			peer->last_allowedip->next_allowedip =
+				peer->next_peer->first_allowedip;
 			peer->last_allowedip = peer->next_peer->last_allowedip;
 		}
 		old_next_peer = peer->next_peer;
@@ -903,7 +1007,8 @@ try_again:
 		return -errno;
 	}
 
-	nlh = mnlg_msg_prepare(nlg, WG_CMD_GET_DEVICE, NLM_F_REQUEST | NLM_F_ACK | NLM_F_DUMP);
+	nlh = mnlg_msg_prepare(nlg, WG_CMD_GET_DEVICE,
+			       NLM_F_REQUEST | NLM_F_ACK | NLM_F_DUMP);
 	mnl_attr_put_strz(nlh, WGDEVICE_A_IFNAME, interface);
 	if (mnlg_socket_send(nlg, nlh) < 0) {
 		ret = -errno;

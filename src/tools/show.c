@@ -27,15 +27,19 @@
 static int peer_cmp(const void *first, const void *second)
 {
 	time_t diff;
-	const struct wgpeer *a = *(const void **)first, *b = *(const void **)second;
+	const struct wgpeer *a = *(const void **)first,
+			    *b = *(const void **)second;
 
-	if (!a->last_handshake_time.tv_sec && !a->last_handshake_time.tv_nsec && (b->last_handshake_time.tv_sec || b->last_handshake_time.tv_nsec))
+	if (!a->last_handshake_time.tv_sec && !a->last_handshake_time.tv_nsec &&
+	    (b->last_handshake_time.tv_sec || b->last_handshake_time.tv_nsec))
 		return 1;
-	if (!b->last_handshake_time.tv_sec && !b->last_handshake_time.tv_nsec && (a->last_handshake_time.tv_sec || a->last_handshake_time.tv_nsec))
+	if (!b->last_handshake_time.tv_sec && !b->last_handshake_time.tv_nsec &&
+	    (a->last_handshake_time.tv_sec || a->last_handshake_time.tv_nsec))
 		return -1;
 	diff = a->last_handshake_time.tv_sec - b->last_handshake_time.tv_sec;
 	if (!diff)
-		diff = a->last_handshake_time.tv_nsec - b->last_handshake_time.tv_nsec;
+		diff = a->last_handshake_time.tv_nsec -
+		       b->last_handshake_time.tv_nsec;
 	if (diff < 0)
 		return 1;
 	if (diff > 0)
@@ -118,12 +122,18 @@ static char *endpoint(const struct sockaddr *addr)
 	else if (addr->sa_family == AF_INET6)
 		addr_len = sizeof(struct sockaddr_in6);
 
-	ret = getnameinfo(addr, addr_len, host, sizeof(host), service, sizeof(service), NI_DGRAM | NI_NUMERICSERV | NI_NUMERICHOST);
+	ret = getnameinfo(addr, addr_len, host, sizeof(host), service,
+			  sizeof(service),
+			  NI_DGRAM | NI_NUMERICSERV | NI_NUMERICHOST);
 	if (ret) {
 		strncpy(buf, gai_strerror(ret), sizeof(buf) - 1);
 		buf[sizeof(buf) - 1] = '\0';
 	} else
-		snprintf(buf, sizeof(buf), (addr->sa_family == AF_INET6 && strchr(host, ':')) ? "[%s]:%s" : "%s:%s", host, service);
+		snprintf(buf, sizeof(buf),
+			 (addr->sa_family == AF_INET6 && strchr(host, ':')) ?
+				 "[%s]:%s" :
+				 "%s:%s",
+			 host, service);
 	return buf;
 }
 
@@ -142,15 +152,35 @@ static size_t pretty_time(char *buf, const size_t len, unsigned long long left)
 	seconds = left % 60;
 
 	if (years)
-		offset += snprintf(buf + offset, len - offset, "%s%llu " TERMINAL_FG_CYAN "year%s" TERMINAL_RESET, offset ? ", " : "", years, years == 1 ? "" : "s");
+		offset += snprintf(buf + offset, len - offset,
+				   "%s%llu " TERMINAL_FG_CYAN
+				   "year%s" TERMINAL_RESET,
+				   offset ? ", " : "", years,
+				   years == 1 ? "" : "s");
 	if (days)
-		offset += snprintf(buf + offset, len - offset, "%s%llu " TERMINAL_FG_CYAN  "day%s" TERMINAL_RESET, offset ? ", " : "", days, days == 1 ? "" : "s");
+		offset += snprintf(buf + offset, len - offset,
+				   "%s%llu " TERMINAL_FG_CYAN
+				   "day%s" TERMINAL_RESET,
+				   offset ? ", " : "", days,
+				   days == 1 ? "" : "s");
 	if (hours)
-		offset += snprintf(buf + offset, len - offset, "%s%llu " TERMINAL_FG_CYAN  "hour%s" TERMINAL_RESET, offset ? ", " : "", hours, hours == 1 ? "" : "s");
+		offset += snprintf(buf + offset, len - offset,
+				   "%s%llu " TERMINAL_FG_CYAN
+				   "hour%s" TERMINAL_RESET,
+				   offset ? ", " : "", hours,
+				   hours == 1 ? "" : "s");
 	if (minutes)
-		offset += snprintf(buf + offset, len - offset, "%s%llu " TERMINAL_FG_CYAN "minute%s" TERMINAL_RESET, offset ? ", " : "", minutes, minutes == 1 ? "" : "s");
+		offset += snprintf(buf + offset, len - offset,
+				   "%s%llu " TERMINAL_FG_CYAN
+				   "minute%s" TERMINAL_RESET,
+				   offset ? ", " : "", minutes,
+				   minutes == 1 ? "" : "s");
 	if (seconds)
-		offset += snprintf(buf + offset, len - offset, "%s%llu " TERMINAL_FG_CYAN  "second%s" TERMINAL_RESET, offset ? ", " : "", seconds, seconds == 1 ? "" : "s");
+		offset += snprintf(buf + offset, len - offset,
+				   "%s%llu " TERMINAL_FG_CYAN
+				   "second%s" TERMINAL_RESET,
+				   offset ? ", " : "", seconds,
+				   seconds == 1 ? "" : "s");
 
 	return offset;
 }
@@ -164,7 +194,11 @@ static char *ago(const struct timespec *t)
 	if (now == t->tv_sec)
 		strncpy(buf, "Now", sizeof(buf) - 1);
 	else if (now < t->tv_sec)
-		strncpy(buf, "(" TERMINAL_FG_RED "System clock wound backward; connection problems may ensue." TERMINAL_RESET ")", sizeof(buf) - 1);
+		strncpy(buf,
+			"(" TERMINAL_FG_RED
+			"System clock wound backward; connection problems may ensue." TERMINAL_RESET
+			")",
+			sizeof(buf) - 1);
 	else {
 		offset = pretty_time(buf, sizeof(buf), now - t->tv_sec);
 		strncpy(buf + offset, " ago", sizeof(buf) - offset - 1);
@@ -178,7 +212,8 @@ static char *every(uint16_t seconds)
 {
 	static char buf[1024] = "every ";
 
-	pretty_time(buf + strlen("every "), sizeof(buf) - strlen("every ") - 1, seconds);
+	pretty_time(buf + strlen("every "), sizeof(buf) - strlen("every ") - 1,
+		    seconds);
 	return buf;
 }
 
@@ -187,15 +222,25 @@ static char *bytes(uint64_t b)
 	static char buf[1024];
 
 	if (b < 1024ULL)
-		snprintf(buf, sizeof(buf), "%u " TERMINAL_FG_CYAN "B" TERMINAL_RESET, (unsigned int)b);
+		snprintf(buf, sizeof(buf),
+			 "%u " TERMINAL_FG_CYAN "B" TERMINAL_RESET,
+			 (unsigned int)b);
 	else if (b < 1024ULL * 1024ULL)
-		snprintf(buf, sizeof(buf), "%.2f " TERMINAL_FG_CYAN "KiB" TERMINAL_RESET, (double)b / 1024);
+		snprintf(buf, sizeof(buf),
+			 "%.2f " TERMINAL_FG_CYAN "KiB" TERMINAL_RESET,
+			 (double)b / 1024);
 	else if (b < 1024ULL * 1024ULL * 1024ULL)
-		snprintf(buf, sizeof(buf), "%.2f " TERMINAL_FG_CYAN "MiB" TERMINAL_RESET, (double)b / (1024 * 1024));
+		snprintf(buf, sizeof(buf),
+			 "%.2f " TERMINAL_FG_CYAN "MiB" TERMINAL_RESET,
+			 (double)b / (1024 * 1024));
 	else if (b < 1024ULL * 1024ULL * 1024ULL * 1024ULL)
-		snprintf(buf, sizeof(buf), "%.2f " TERMINAL_FG_CYAN "GiB" TERMINAL_RESET, (double)b / (1024 * 1024 * 1024));
+		snprintf(buf, sizeof(buf),
+			 "%.2f " TERMINAL_FG_CYAN "GiB" TERMINAL_RESET,
+			 (double)b / (1024 * 1024 * 1024));
 	else
-		snprintf(buf, sizeof(buf), "%.2f " TERMINAL_FG_CYAN "TiB" TERMINAL_RESET, (double)b / (1024 * 1024 * 1024) / 1024);
+		snprintf(buf, sizeof(buf),
+			 "%.2f " TERMINAL_FG_CYAN "TiB" TERMINAL_RESET,
+			 (double)b / (1024 * 1024 * 1024) / 1024);
 
 	return buf;
 }
@@ -203,7 +248,9 @@ static char *bytes(uint64_t b)
 static const char *COMMAND_NAME;
 static void show_usage(void)
 {
-	fprintf(stderr, "Usage: %s %s { <interface> | all | interfaces } [public-key | private-key | listen-port | fwmark | peers | preshared-keys | endpoints | allowed-ips | latest-handshakes | transfer | persistent-keepalive | dump]\n", PROG_NAME, COMMAND_NAME);
+	fprintf(stderr,
+		"Usage: %s %s { <interface> | all | interfaces } [public-key | private-key | listen-port | fwmark | peers | preshared-keys | endpoints | allowed-ips | latest-handshakes | transfer | persistent-keepalive | dump]\n",
+		PROG_NAME, COMMAND_NAME);
 }
 
 static void pretty_print(struct wgdevice *device)
@@ -212,40 +259,72 @@ static void pretty_print(struct wgdevice *device)
 	struct wgallowedip *allowedip;
 
 	terminal_printf(TERMINAL_RESET);
-	terminal_printf(TERMINAL_FG_GREEN TERMINAL_BOLD "interface" TERMINAL_RESET ": " TERMINAL_FG_GREEN "%s" TERMINAL_RESET "\n", device->name);
+	terminal_printf(TERMINAL_FG_GREEN TERMINAL_BOLD
+			"interface" TERMINAL_RESET ": " TERMINAL_FG_GREEN
+			"%s" TERMINAL_RESET "\n",
+			device->name);
 	if (device->flags & WGDEVICE_HAS_PUBLIC_KEY)
-		terminal_printf("  " TERMINAL_BOLD "public key" TERMINAL_RESET ": %s\n", key(device->public_key));
+		terminal_printf("  " TERMINAL_BOLD "public key" TERMINAL_RESET
+				": %s\n",
+				key(device->public_key));
 	if (device->flags & WGDEVICE_HAS_PRIVATE_KEY)
-		terminal_printf("  " TERMINAL_BOLD "private key" TERMINAL_RESET ": %s\n", masked_key(device->private_key));
+		terminal_printf("  " TERMINAL_BOLD "private key" TERMINAL_RESET
+				": %s\n",
+				masked_key(device->private_key));
 	if (device->listen_port)
-		terminal_printf("  " TERMINAL_BOLD "listening port" TERMINAL_RESET ": %u\n", device->listen_port);
+		terminal_printf("  " TERMINAL_BOLD
+				"listening port" TERMINAL_RESET ": %u\n",
+				device->listen_port);
 	if (device->fwmark)
-		terminal_printf("  " TERMINAL_BOLD "fwmark" TERMINAL_RESET ": 0x%x\n", device->fwmark);
+		terminal_printf("  " TERMINAL_BOLD "fwmark" TERMINAL_RESET
+				": 0x%x\n",
+				device->fwmark);
 	if (device->first_peer) {
 		sort_peers(device);
 		terminal_printf("\n");
 	}
 	for_each_wgpeer(device, peer) {
-		terminal_printf(TERMINAL_FG_YELLOW TERMINAL_BOLD "peer" TERMINAL_RESET ": " TERMINAL_FG_YELLOW "%s" TERMINAL_RESET "\n", key(peer->public_key));
+		terminal_printf(TERMINAL_FG_YELLOW TERMINAL_BOLD
+				"peer" TERMINAL_RESET ": " TERMINAL_FG_YELLOW
+				"%s" TERMINAL_RESET "\n",
+				key(peer->public_key));
 		if (peer->flags & WGPEER_HAS_PRESHARED_KEY)
-			terminal_printf("  " TERMINAL_BOLD "preshared key" TERMINAL_RESET ": %s\n", masked_key(peer->preshared_key));
-		if (peer->endpoint.addr.sa_family == AF_INET || peer->endpoint.addr.sa_family == AF_INET6)
-			terminal_printf("  " TERMINAL_BOLD "endpoint" TERMINAL_RESET ": %s\n", endpoint(&peer->endpoint.addr));
-		terminal_printf("  " TERMINAL_BOLD "allowed ips" TERMINAL_RESET ": ");
+			terminal_printf("  " TERMINAL_BOLD
+					"preshared key" TERMINAL_RESET ": %s\n",
+					masked_key(peer->preshared_key));
+		if (peer->endpoint.addr.sa_family == AF_INET ||
+		    peer->endpoint.addr.sa_family == AF_INET6)
+			terminal_printf("  " TERMINAL_BOLD
+					"endpoint" TERMINAL_RESET ": %s\n",
+					endpoint(&peer->endpoint.addr));
+		terminal_printf("  " TERMINAL_BOLD "allowed ips" TERMINAL_RESET
+				": ");
 		if (peer->first_allowedip) {
 			for_each_wgallowedip(peer, allowedip)
-				terminal_printf("%s" TERMINAL_FG_CYAN "/" TERMINAL_RESET "%u%s", ip(allowedip), allowedip->cidr, allowedip->next_allowedip ? ", " : "\n");
+				terminal_printf("%s" TERMINAL_FG_CYAN
+						"/" TERMINAL_RESET "%u%s",
+						ip(allowedip), allowedip->cidr,
+						allowedip->next_allowedip ?
+							", " :
+							"\n");
 		} else
 			terminal_printf("(none)\n");
 		if (peer->last_handshake_time.tv_sec)
-			terminal_printf("  " TERMINAL_BOLD "latest handshake" TERMINAL_RESET ": %s\n", ago(&peer->last_handshake_time));
+			terminal_printf("  " TERMINAL_BOLD
+					"latest handshake" TERMINAL_RESET
+					": %s\n",
+					ago(&peer->last_handshake_time));
 		if (peer->rx_bytes || peer->tx_bytes) {
-			terminal_printf("  " TERMINAL_BOLD "transfer" TERMINAL_RESET ": ");
+			terminal_printf("  " TERMINAL_BOLD
+					"transfer" TERMINAL_RESET ": ");
 			terminal_printf("%s received, ", bytes(peer->rx_bytes));
 			terminal_printf("%s sent\n", bytes(peer->tx_bytes));
 		}
 		if (peer->persistent_keepalive_interval)
-			terminal_printf("  " TERMINAL_BOLD "persistent keepalive" TERMINAL_RESET ": %s\n", every(peer->persistent_keepalive_interval));
+			terminal_printf(
+				"  " TERMINAL_BOLD
+				"persistent keepalive" TERMINAL_RESET ": %s\n",
+				every(peer->persistent_keepalive_interval));
 		if (peer->next_peer)
 			terminal_printf("\n");
 	}
@@ -258,8 +337,10 @@ static void dump_print(struct wgdevice *device, bool with_interface)
 
 	if (with_interface)
 		printf("%s\t", device->name);
-	printf("%s\t", maybe_key(device->private_key, device->flags & WGDEVICE_HAS_PRIVATE_KEY));
-	printf("%s\t", maybe_key(device->public_key, device->flags & WGDEVICE_HAS_PUBLIC_KEY));
+	printf("%s\t", maybe_key(device->private_key,
+				 device->flags & WGDEVICE_HAS_PRIVATE_KEY));
+	printf("%s\t", maybe_key(device->public_key,
+				 device->flags & WGDEVICE_HAS_PUBLIC_KEY));
 	printf("%u\t", device->listen_port);
 	if (device->fwmark)
 		printf("0x%x\n", device->fwmark);
@@ -269,18 +350,25 @@ static void dump_print(struct wgdevice *device, bool with_interface)
 		if (with_interface)
 			printf("%s\t", device->name);
 		printf("%s\t", key(peer->public_key));
-		printf("%s\t", maybe_key(peer->preshared_key, peer->flags & WGPEER_HAS_PRESHARED_KEY));
-		if (peer->endpoint.addr.sa_family == AF_INET || peer->endpoint.addr.sa_family == AF_INET6)
+		printf("%s\t",
+		       maybe_key(peer->preshared_key,
+				 peer->flags & WGPEER_HAS_PRESHARED_KEY));
+		if (peer->endpoint.addr.sa_family == AF_INET ||
+		    peer->endpoint.addr.sa_family == AF_INET6)
 			printf("%s\t", endpoint(&peer->endpoint.addr));
 		else
 			printf("(none)\t");
 		if (peer->first_allowedip) {
 			for_each_wgallowedip(peer, allowedip)
-				printf("%s/%u%c", ip(allowedip), allowedip->cidr, allowedip->next_allowedip ? ',' : '\t');
+				printf("%s/%u%c", ip(allowedip),
+				       allowedip->cidr,
+				       allowedip->next_allowedip ? ',' : '\t');
 		} else
 			printf("(none)\t");
-		printf("%llu\t", (unsigned long long)peer->last_handshake_time.tv_sec);
-		printf("%" PRIu64 "\t%" PRIu64 "\t", (uint64_t)peer->rx_bytes, (uint64_t)peer->tx_bytes);
+		printf("%llu\t",
+		       (unsigned long long)peer->last_handshake_time.tv_sec);
+		printf("%" PRIu64 "\t%" PRIu64 "\t", (uint64_t)peer->rx_bytes,
+		       (uint64_t)peer->tx_bytes);
 		if (peer->persistent_keepalive_interval)
 			printf("%u\n", peer->persistent_keepalive_interval);
 		else
@@ -288,7 +376,8 @@ static void dump_print(struct wgdevice *device, bool with_interface)
 	}
 }
 
-static bool ugly_print(struct wgdevice *device, const char *param, bool with_interface)
+static bool ugly_print(struct wgdevice *device, const char *param,
+		       bool with_interface)
 {
 	struct wgpeer *peer;
 	struct wgallowedip *allowedip;
@@ -296,11 +385,15 @@ static bool ugly_print(struct wgdevice *device, const char *param, bool with_int
 	if (!strcmp(param, "public-key")) {
 		if (with_interface)
 			printf("%s\t", device->name);
-		printf("%s\n", maybe_key(device->public_key, device->flags & WGDEVICE_HAS_PUBLIC_KEY));
+		printf("%s\n",
+		       maybe_key(device->public_key,
+				 device->flags & WGDEVICE_HAS_PUBLIC_KEY));
 	} else if (!strcmp(param, "private-key")) {
 		if (with_interface)
 			printf("%s\t", device->name);
-		printf("%s\n", maybe_key(device->private_key, device->flags & WGDEVICE_HAS_PRIVATE_KEY));
+		printf("%s\n",
+		       maybe_key(device->private_key,
+				 device->flags & WGDEVICE_HAS_PRIVATE_KEY));
 	} else if (!strcmp(param, "listen-port")) {
 		if (with_interface)
 			printf("%s\t", device->name);
@@ -317,7 +410,8 @@ static bool ugly_print(struct wgdevice *device, const char *param, bool with_int
 			printf("%s\t", device->name);
 		for_each_wgpeer(device, peer) {
 			printf("%s\t", key(peer->public_key));
-			if (peer->endpoint.addr.sa_family == AF_INET || peer->endpoint.addr.sa_family == AF_INET6)
+			if (peer->endpoint.addr.sa_family == AF_INET ||
+			    peer->endpoint.addr.sa_family == AF_INET6)
 				printf("%s\n", endpoint(&peer->endpoint.addr));
 			else
 				printf("(none)\n");
@@ -329,7 +423,11 @@ static bool ugly_print(struct wgdevice *device, const char *param, bool with_int
 			printf("%s\t", key(peer->public_key));
 			if (peer->first_allowedip) {
 				for_each_wgallowedip(peer, allowedip)
-					printf("%s/%u%c", ip(allowedip), allowedip->cidr, allowedip->next_allowedip ? ' ' : '\n');
+					printf("%s/%u%c", ip(allowedip),
+					       allowedip->cidr,
+					       allowedip->next_allowedip ?
+						       ' ' :
+						       '\n');
 			} else
 				printf("(none)\n");
 		}
@@ -337,20 +435,25 @@ static bool ugly_print(struct wgdevice *device, const char *param, bool with_int
 		for_each_wgpeer(device, peer) {
 			if (with_interface)
 				printf("%s\t", device->name);
-			printf("%s\t%llu\n", key(peer->public_key), (unsigned long long)peer->last_handshake_time.tv_sec);
+			printf("%s\t%llu\n", key(peer->public_key),
+			       (unsigned long long)
+				       peer->last_handshake_time.tv_sec);
 		}
 	} else if (!strcmp(param, "transfer")) {
 		for_each_wgpeer(device, peer) {
 			if (with_interface)
 				printf("%s\t", device->name);
-			printf("%s\t%" PRIu64 "\t%" PRIu64 "\n", key(peer->public_key), (uint64_t)peer->rx_bytes, (uint64_t)peer->tx_bytes);
+			printf("%s\t%" PRIu64 "\t%" PRIu64 "\n",
+			       key(peer->public_key), (uint64_t)peer->rx_bytes,
+			       (uint64_t)peer->tx_bytes);
 		}
 	} else if (!strcmp(param, "persistent-keepalive")) {
 		for_each_wgpeer(device, peer) {
 			if (with_interface)
 				printf("%s\t", device->name);
 			if (peer->persistent_keepalive_interval)
-				printf("%s\t%u\n", key(peer->public_key), peer->persistent_keepalive_interval);
+				printf("%s\t%u\n", key(peer->public_key),
+				       peer->persistent_keepalive_interval);
 			else
 				printf("%s\toff\n", key(peer->public_key));
 		}
@@ -359,7 +462,10 @@ static bool ugly_print(struct wgdevice *device, const char *param, bool with_int
 			if (with_interface)
 				printf("%s\t", device->name);
 			printf("%s\t", key(peer->public_key));
-			printf("%s\n", maybe_key(peer->preshared_key, peer->flags & WGPEER_HAS_PRESHARED_KEY));
+			printf("%s\n",
+			       maybe_key(peer->preshared_key,
+					 peer->flags &
+						 WGPEER_HAS_PRESHARED_KEY));
 		}
 	} else if (!strcmp(param, "peers")) {
 		for_each_wgpeer(device, peer) {
@@ -397,11 +503,14 @@ int show_main(int argc, char *argv[])
 		}
 		ret = !!*interfaces;
 		interface = interfaces;
-		for (size_t len = 0; (len = strlen(interface)); interface += len + 1) {
+		for (size_t len = 0; (len = strlen(interface));
+		     interface += len + 1) {
 			struct wgdevice *device = NULL;
 
 			if (ipc_get_device(&device, interface) < 0) {
-				fprintf(stderr, "Unable to access interface %s: %s\n", interface, strerror(errno));
+				fprintf(stderr,
+					"Unable to access interface %s: %s\n",
+					interface, strerror(errno));
 				continue;
 			}
 			if (argc == 3) {
@@ -432,10 +541,14 @@ int show_main(int argc, char *argv[])
 			return 1;
 		}
 		interface = interfaces;
-		for (size_t len = 0; (len = strlen(interface)); interface += len + 1)
-			printf("%s%c", interface, strlen(interface + len + 1) ? ' ' : '\n');
+		for (size_t len = 0; (len = strlen(interface));
+		     interface += len + 1)
+			printf("%s%c", interface,
+			       strlen(interface + len + 1) ? ' ' : '\n');
 		free(interfaces);
-	} else if (argc == 2 && (!strcmp(argv[1], "-h") || !strcmp(argv[1], "--help") || !strcmp(argv[1], "help")))
+	} else if (argc == 2 &&
+		   (!strcmp(argv[1], "-h") || !strcmp(argv[1], "--help") ||
+		    !strcmp(argv[1], "help")))
 		show_usage();
 	else {
 		struct wgdevice *device = NULL;

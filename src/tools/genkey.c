@@ -32,7 +32,11 @@ static inline ssize_t get_random_bytes(uint8_t *out, size_t len)
 	ssize_t ret;
 	int fd;
 
-#if defined(__OpenBSD__) || (defined(__APPLE__) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12) || (defined(__GLIBC__) && (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 25)))
+#if defined(__OpenBSD__) ||                                          \
+	(defined(__APPLE__) &&                                       \
+	 MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12) || \
+	(defined(__GLIBC__) &&                                       \
+	 (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 25)))
 	ret = getentropy(out, len);
 	if (!ret)
 		return len;
@@ -63,8 +67,10 @@ int genkey_main(int argc, char *argv[])
 		return 1;
 	}
 
-	if (!fstat(STDOUT_FILENO, &stat) && S_ISREG(stat.st_mode) && stat.st_mode & S_IRWXO)
-		fputs("Warning: writing to world accessible file.\nConsider setting the umask to 077 and trying again.\n", stderr);
+	if (!fstat(STDOUT_FILENO, &stat) && S_ISREG(stat.st_mode) &&
+	    stat.st_mode & S_IRWXO)
+		fputs("Warning: writing to world accessible file.\nConsider setting the umask to 077 and trying again.\n",
+		      stderr);
 
 	if (get_random_bytes(key, WG_KEY_LEN) != WG_KEY_LEN) {
 		perror("getrandom");

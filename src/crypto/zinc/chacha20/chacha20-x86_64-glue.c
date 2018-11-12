@@ -23,9 +23,10 @@ static bool chacha20_use_ssse3 __ro_after_init;
 static bool chacha20_use_avx2 __ro_after_init;
 static bool chacha20_use_avx512 __ro_after_init;
 static bool chacha20_use_avx512vl __ro_after_init;
-static bool *const chacha20_nobs[] __initconst = {
-	&chacha20_use_ssse3, &chacha20_use_avx2, &chacha20_use_avx512,
-	&chacha20_use_avx512vl };
+static bool *const chacha20_nobs[] __initconst = { &chacha20_use_ssse3,
+						   &chacha20_use_avx2,
+						   &chacha20_use_avx512,
+						   &chacha20_use_avx512vl };
 
 static void __init chacha20_fpu_init(void)
 {
@@ -40,7 +41,8 @@ static void __init chacha20_fpu_init(void)
 		boot_cpu_has(X86_FEATURE_AVX2) &&
 		boot_cpu_has(X86_FEATURE_AVX512F) &&
 		cpu_has_xfeatures(XFEATURE_MASK_SSE | XFEATURE_MASK_YMM |
-				  XFEATURE_MASK_AVX512, NULL) &&
+					  XFEATURE_MASK_AVX512,
+				  NULL) &&
 		/* Skylake downclocks unacceptably much when using zmm. */
 		boot_cpu_data.x86_model != INTEL_FAM6_SKYLAKE_X;
 	chacha20_use_avx512vl =
@@ -49,7 +51,8 @@ static void __init chacha20_fpu_init(void)
 		boot_cpu_has(X86_FEATURE_AVX512F) &&
 		boot_cpu_has(X86_FEATURE_AVX512VL) &&
 		cpu_has_xfeatures(XFEATURE_MASK_SSE | XFEATURE_MASK_YMM |
-				  XFEATURE_MASK_AVX512, NULL);
+					  XFEATURE_MASK_AVX512,
+				  NULL);
 #endif
 }
 
@@ -70,10 +73,13 @@ static inline bool chacha20_arch(struct chacha20_ctx *ctx, u8 *dst,
 
 		if (IS_ENABLED(CONFIG_AS_AVX512) && chacha20_use_avx512 &&
 		    len >= CHACHA20_BLOCK_SIZE * 8)
-			chacha20_avx512(dst, src, bytes, ctx->key, ctx->counter);
-		else if (IS_ENABLED(CONFIG_AS_AVX512) && chacha20_use_avx512vl &&
+			chacha20_avx512(dst, src, bytes, ctx->key,
+					ctx->counter);
+		else if (IS_ENABLED(CONFIG_AS_AVX512) &&
+			 chacha20_use_avx512vl &&
 			 len >= CHACHA20_BLOCK_SIZE * 4)
-			chacha20_avx512vl(dst, src, bytes, ctx->key, ctx->counter);
+			chacha20_avx512vl(dst, src, bytes, ctx->key,
+					  ctx->counter);
 		else if (IS_ENABLED(CONFIG_AS_AVX2) && chacha20_use_avx2 &&
 			 len >= CHACHA20_BLOCK_SIZE * 4)
 			chacha20_avx2(dst, src, bytes, ctx->key, ctx->counter);

@@ -15,7 +15,9 @@
 #include <net/route.h>
 #if IS_ENABLED(CONFIG_IPV6)
 #include <net/ip6_fib.h>
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 2, 0) && LINUX_VERSION_CODE >= KERNEL_VERSION(3, 17, 0)) || LINUX_VERSION_CODE < KERNEL_VERSION(3, 16, 50)
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 2, 0) &&    \
+     LINUX_VERSION_CODE >= KERNEL_VERSION(3, 17, 0)) || \
+	LINUX_VERSION_CODE < KERNEL_VERSION(3, 16, 50)
 static inline u32 rt6_get_cookie(const struct rt6_info *rt)
 {
 	if ((unlikely(rt->dst.flags & DST_NOCACHE) && rt->dst.from))
@@ -151,8 +153,8 @@ int dst_cache_init(struct dst_cache *dst_cache, gfp_t gfp)
 	BUG_ON(gfp & GFP_ATOMIC);
 	dst_cache->cache = alloc_percpu(struct dst_cache_pcpu);
 #else
-	dst_cache->cache = alloc_percpu_gfp(struct dst_cache_pcpu,
-					    gfp | __GFP_ZERO);
+	dst_cache->cache =
+		alloc_percpu_gfp(struct dst_cache_pcpu, gfp | __GFP_ZERO);
 #endif
 	if (!dst_cache->cache)
 		return -ENOMEM;
@@ -168,7 +170,7 @@ void dst_cache_destroy(struct dst_cache *dst_cache)
 	if (!dst_cache->cache)
 		return;
 
-	for_each_possible_cpu(i)
+	for_each_possible_cpu (i)
 		dst_release(per_cpu_ptr(dst_cache->cache, i)->dst);
 
 	free_percpu(dst_cache->cache);

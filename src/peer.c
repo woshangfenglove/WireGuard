@@ -80,8 +80,9 @@ err_1:
 
 struct wg_peer *wg_peer_get_maybe_zero(struct wg_peer *peer)
 {
-	RCU_LOCKDEP_WARN(!rcu_read_lock_bh_held(),
-			 "Taking peer reference without holding the RCU read lock");
+	RCU_LOCKDEP_WARN(
+		!rcu_read_lock_bh_held(),
+		"Taking peer reference without holding the RCU read lock");
 	if (unlikely(!peer || !kref_get_unless_zero(&peer->refcount)))
 		return NULL;
 	return peer;
@@ -210,6 +211,6 @@ void wg_peer_remove_all(struct wg_device *wg)
 	struct wg_peer *peer, *temp;
 
 	lockdep_assert_held(&wg->device_update_lock);
-	list_for_each_entry_safe(peer, temp, &wg->peer_list, peer_list)
+	list_for_each_entry_safe (peer, temp, &wg->peer_list, peer_list)
 		wg_peer_remove(peer);
 }

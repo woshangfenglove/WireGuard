@@ -143,10 +143,10 @@ static void poly1305_emit_generic(void *ctx, u8 mac[16], const u32 nonce[4])
 
 	/* compute h + -p */
 	g0 = h0 + 5;
-	c  = g0 >> 44;
+	c = g0 >> 44;
 	g0 &= 0xfffffffffffULL;
 	g1 = h1 + c;
-	c  = g1 >> 44;
+	c = g1 >> 44;
 	g1 &= 0xfffffffffffULL;
 	g2 = h2 + c - (1ULL << 42);
 
@@ -155,7 +155,7 @@ static void poly1305_emit_generic(void *ctx, u8 mac[16], const u32 nonce[4])
 	g0 &= c;
 	g1 &= c;
 	g2 &= c;
-	c  = ~c;
+	c = ~c;
 	h0 = (h0 & c) | g0;
 	h1 = (h1 & c) | g1;
 	h2 = (h2 & c) | g2;

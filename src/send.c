@@ -28,9 +28,10 @@ static void wg_packet_send_handshake_initiation(struct wg_peer *peer)
 		return; /* This function is rate limited. */
 
 	atomic64_set(&peer->last_sent_handshake, ktime_get_boot_fast_ns());
-	net_dbg_ratelimited("%s: Sending handshake initiation to peer %llu (%pISpfsc)\n",
-			    peer->device->dev->name, peer->internal_id,
-			    &peer->endpoint.addr);
+	net_dbg_ratelimited(
+		"%s: Sending handshake initiation to peer %llu (%pISpfsc)\n",
+		peer->device->dev->name, peer->internal_id,
+		&peer->endpoint.addr);
 
 	if (wg_noise_handshake_create_initiation(&packet, &peer->handshake)) {
 		wg_cookie_add_mac_to_packet(&packet, sizeof(packet), peer);
@@ -46,8 +47,8 @@ static void wg_packet_send_handshake_initiation(struct wg_peer *peer)
 
 void wg_packet_handshake_send_worker(struct work_struct *work)
 {
-	struct wg_peer *peer = container_of(work, struct wg_peer,
-					    transmit_handshake_work);
+	struct wg_peer *peer =
+		container_of(work, struct wg_peer, transmit_handshake_work);
 
 	wg_packet_send_handshake_initiation(peer);
 	wg_peer_put(peer);
@@ -66,7 +67,7 @@ void wg_packet_send_queued_handshake_initiation(struct wg_peer *peer,
 	 */
 	if (!wg_birthdate_has_expired(atomic64_read(&peer->last_sent_handshake),
 				      REKEY_TIMEOUT) ||
-			unlikely(READ_ONCE(peer->is_dead)))
+	    unlikely(READ_ONCE(peer->is_dead)))
 		goto out;
 
 	wg_peer_get(peer);
@@ -88,9 +89,10 @@ void wg_packet_send_handshake_response(struct wg_peer *peer)
 	struct message_handshake_response packet;
 
 	atomic64_set(&peer->last_sent_handshake, ktime_get_boot_fast_ns());
-	net_dbg_ratelimited("%s: Sending handshake response to peer %llu (%pISpfsc)\n",
-			    peer->device->dev->name, peer->internal_id,
-			    &peer->endpoint.addr);
+	net_dbg_ratelimited(
+		"%s: Sending handshake response to peer %llu (%pISpfsc)\n",
+		peer->device->dev->name, peer->internal_id,
+		&peer->endpoint.addr);
 
 	if (wg_noise_handshake_create_response(&packet, &peer->handshake)) {
 		wg_cookie_add_mac_to_packet(&packet, sizeof(packet), peer);
@@ -101,9 +103,8 @@ void wg_packet_send_handshake_response(struct wg_peer *peer)
 			wg_timers_any_authenticated_packet_sent(peer);
 			atomic64_set(&peer->last_sent_handshake,
 				     ktime_get_boot_fast_ns());
-			wg_socket_send_buffer_to_peer(peer, &packet,
-						      sizeof(packet),
-						      HANDSHAKE_DSCP);
+			wg_socket_send_buffer_to_peer(
+				peer, &packet, sizeof(packet), HANDSHAKE_DSCP);
 		}
 	}
 }
@@ -114,8 +115,9 @@ void wg_packet_send_handshake_cookie(struct wg_device *wg,
 {
 	struct message_handshake_cookie packet;
 
-	net_dbg_skb_ratelimited("%s: Sending cookie response for denied handshake message for %pISpfsc\n",
-				wg->dev->name, initiating_skb);
+	net_dbg_skb_ratelimited(
+		"%s: Sending cookie response for denied handshake message for %pISpfsc\n",
+		wg->dev->name, initiating_skb);
 	wg_cookie_message_create(&packet, initiating_skb, sender_index,
 				 &wg->cookie_checker);
 	wg_socket_send_buffer_as_reply_to_skb(wg, initiating_skb, &packet,
@@ -225,23 +227,23 @@ void wg_packet_send_keepalive(struct wg_peer *peer)
 		skb->dev = peer->device->dev;
 		PACKET_CB(skb)->mtu = skb->dev->mtu;
 		skb_queue_tail(&peer->staged_packet_queue, skb);
-		net_dbg_ratelimited("%s: Sending keepalive packet to peer %llu (%pISpfsc)\n",
-				    peer->device->dev->name, peer->internal_id,
-				    &peer->endpoint.addr);
+		net_dbg_ratelimited(
+			"%s: Sending keepalive packet to peer %llu (%pISpfsc)\n",
+			peer->device->dev->name, peer->internal_id,
+			&peer->endpoint.addr);
 	}
 
 	wg_packet_send_staged_packets(peer);
 }
 
-#define skb_walk_null_queue_safe(first, skb, next)                             \
-	for (skb = first, next = skb->next; skb;                               \
+#define skb_walk_null_queue_safe(first, skb, next) \
+	for (skb = first, next = skb->next; skb;   \
 	     skb = next, next = skb ? skb->next : NULL)
 static void skb_free_null_queue(struct sk_buff *first)
 {
 	struct sk_buff *skb, *next;
 
-	skb_walk_null_queue_safe(first, skb, next)
-		dev_kfree_skb(skb);
+	skb_walk_null_queue_safe(first, skb, next) dev_kfree_skb(skb);
 }
 
 static void wg_packet_create_data_done(struct sk_buff *first,
@@ -252,10 +254,12 @@ static void wg_packet_create_data_done(struct sk_buff *first,
 
 	wg_timers_any_authenticated_packet_traversal(peer);
 	wg_timers_any_authenticated_packet_sent(peer);
-	skb_walk_null_queue_safe(first, skb, next) {
+	skb_walk_null_queue_safe(first, skb, next)
+	{
 		is_keepalive = skb->len == message_data_len(0);
 		if (likely(!wg_socket_send_skb_to_peer(peer, skb,
-				PACKET_CB(skb)->ds) && !is_keepalive))
+						       PACKET_CB(skb)->ds) &&
+			   !is_keepalive))
 			data_sent = true;
 	}
 
@@ -267,8 +271,8 @@ static void wg_packet_create_data_done(struct sk_buff *first,
 
 void wg_packet_tx_worker(struct work_struct *work)
 {
-	struct crypt_queue *queue = container_of(work, struct crypt_queue,
-						 work);
+	struct crypt_queue *queue =
+		container_of(work, struct crypt_queue, work);
 	struct noise_keypair *keypair;
 	enum packet_state state;
 	struct sk_buff *first;
@@ -293,8 +297,8 @@ void wg_packet_tx_worker(struct work_struct *work)
 
 void wg_packet_encrypt_worker(struct work_struct *work)
 {
-	struct crypt_queue *queue = container_of(work, struct multicore_worker,
-						 work)->ptr;
+	struct crypt_queue *queue =
+		container_of(work, struct multicore_worker, work)->ptr;
 	struct sk_buff *first, *skb, *next;
 	simd_context_t simd_context;
 
@@ -302,7 +306,8 @@ void wg_packet_encrypt_worker(struct work_struct *work)
 	while ((first = ptr_ring_consume_bh(&queue->ring)) != NULL) {
 		enum packet_state state = PACKET_STATE_CRYPTED;
 
-		skb_walk_null_queue_safe(first, skb, next) {
+		skb_walk_null_queue_safe(first, skb, next)
+		{
 			if (likely(encrypt_packet(skb,
 						  PACKET_CB(first)->keypair,
 						  &simd_context))) {
@@ -388,13 +393,14 @@ void wg_packet_send_staged_packets(struct wg_peer *peer)
 	 * for all of them, we just consider it a failure and wait for the next
 	 * handshake.
 	 */
-	skb_queue_walk(&packets, skb) {
+	skb_queue_walk(&packets, skb)
+	{
 		/* 0 for no outer TOS: no leak. TODO: at some later point, we
 		 * might consider using flowi->tos as outer instead.
 		 */
 		PACKET_CB(skb)->ds = ip_tunnel_ecn_encap(0, ip_hdr(skb), skb);
 		PACKET_CB(skb)->nonce =
-				atomic64_inc_return(&key->counter.counter) - 1;
+			atomic64_inc_return(&key->counter.counter) - 1;
 		if (unlikely(PACKET_CB(skb)->nonce >= REJECT_AFTER_MESSAGES))
 			goto out_invalid;
 	}
@@ -413,8 +419,7 @@ out_nokey:
 	/* We orphan the packets if we're waiting on a handshake, so that they
 	 * don't block a socket's pool.
 	 */
-	skb_queue_walk(&packets, skb)
-		skb_orphan(skb);
+	skb_queue_walk(&packets, skb) skb_orphan(skb);
 	/* Then we put them back on the top of the queue. We're not too
 	 * concerned about accidentally getting things a little out of order if
 	 * packets are being added really fast, because this queue is for before

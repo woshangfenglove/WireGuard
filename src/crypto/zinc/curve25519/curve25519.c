@@ -25,7 +25,7 @@
 #elif defined(CONFIG_ZINC_ARCH_ARM)
 #include "curve25519-arm-glue.c"
 #else
-static bool *const curve25519_nobs[] __initconst = { };
+static bool *const curve25519_nobs[] __initconst = {};
 static void __init curve25519_fpu_init(void)
 {
 }

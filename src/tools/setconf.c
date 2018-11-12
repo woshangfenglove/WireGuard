@@ -23,7 +23,9 @@ int setconf_main(int argc, char *argv[])
 	int ret = 1;
 
 	if (argc != 3) {
-		fprintf(stderr, "Usage: %s %s <interface> <configuration filename>\n", PROG_NAME, argv[0]);
+		fprintf(stderr,
+			"Usage: %s %s <interface> <configuration filename>\n",
+			PROG_NAME, argv[0]);
 		return 1;
 	}
 

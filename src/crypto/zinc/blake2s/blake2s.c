@@ -37,10 +37,9 @@ typedef union {
 	__le32 words[8];
 } __packed blake2s_param;
 
-static const u32 blake2s_iv[8] = {
-	0x6A09E667UL, 0xBB67AE85UL, 0x3C6EF372UL, 0xA54FF53AUL,
-	0x510E527FUL, 0x9B05688CUL, 0x1F83D9ABUL, 0x5BE0CD19UL
-};
+static const u32 blake2s_iv[8] = { 0x6A09E667UL, 0xBB67AE85UL, 0x3C6EF372UL,
+				   0xA54FF53AUL, 0x510E527FUL, 0x9B05688CUL,
+				   0x1F83D9ABUL, 0x5BE0CD19UL };
 
 static const u8 blake2s_sigma[10][16] = {
 	{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 },
@@ -81,11 +80,8 @@ static inline void blake2s_init_param(struct blake2s_state *state,
 
 void blake2s_init(struct blake2s_state *state, const size_t outlen)
 {
-	blake2s_param param __aligned(__alignof__(u32)) = {
-		.digest_length = outlen,
-		.fanout = 1,
-		.depth = 1
-	};
+	blake2s_param param __aligned(__alignof__(
+		u32)) = { .digest_length = outlen, .fanout = 1, .depth = 1 };
 
 	WARN_ON(IS_ENABLED(DEBUG) && (!outlen || outlen > BLAKE2S_HASH_SIZE));
 	blake2s_init_param(state, &param);
@@ -101,8 +97,9 @@ void blake2s_init_key(struct blake2s_state *state, const size_t outlen,
 				.depth = 1 };
 	u8 block[BLAKE2S_BLOCK_SIZE] = { 0 };
 
-	WARN_ON(IS_ENABLED(DEBUG) && (!outlen || outlen > BLAKE2S_HASH_SIZE ||
-		!key || !keylen || keylen > BLAKE2S_KEY_SIZE));
+	WARN_ON(IS_ENABLED(DEBUG) &&
+		(!outlen || outlen > BLAKE2S_HASH_SIZE || !key || !keylen ||
+		 keylen > BLAKE2S_KEY_SIZE));
 	blake2s_init_param(state, &param);
 	memcpy(block, key, keylen);
 	blake2s_update(state, block, BLAKE2S_BLOCK_SIZE);
@@ -113,7 +110,7 @@ EXPORT_SYMBOL(blake2s_init_key);
 #if defined(CONFIG_ZINC_ARCH_X86_64)
 #include "blake2s-x86_64-glue.c"
 #else
-static bool *const blake2s_nobs[] __initconst = { };
+static bool *const blake2s_nobs[] __initconst = {};
 static void __init blake2s_fpu_init(void)
 {
 }
@@ -144,8 +141,8 @@ static inline void blake2s_compress(struct blake2s_state *state,
 		memcpy(m, block, BLAKE2S_BLOCK_SIZE);
 		le32_to_cpu_array(m, ARRAY_SIZE(m));
 		memcpy(v, state->h, 32);
-		v[ 8] = blake2s_iv[0];
-		v[ 9] = blake2s_iv[1];
+		v[8] = blake2s_iv[0];
+		v[9] = blake2s_iv[1];
 		v[10] = blake2s_iv[2];
 		v[11] = blake2s_iv[3];
 		v[12] = blake2s_iv[4] ^ state->t[0];
@@ -153,27 +150,29 @@ static inline void blake2s_compress(struct blake2s_state *state,
 		v[14] = blake2s_iv[6] ^ state->f[0];
 		v[15] = blake2s_iv[7] ^ state->f[1];
 
-#define G(r, i, a, b, c, d) do { \
-	a += b + m[blake2s_sigma[r][2 * i + 0]]; \
-	d = ror32(d ^ a, 16); \
-	c += d; \
-	b = ror32(b ^ c, 12); \
-	a += b + m[blake2s_sigma[r][2 * i + 1]]; \
-	d = ror32(d ^ a, 8); \
-	c += d; \
-	b = ror32(b ^ c, 7); \
-} while (0)
+#define G(r, i, a, b, c, d)                              \
+	do {                                             \
+		a += b + m[blake2s_sigma[r][2 * i + 0]]; \
+		d = ror32(d ^ a, 16);                    \
+		c += d;                                  \
+		b = ror32(b ^ c, 12);                    \
+		a += b + m[blake2s_sigma[r][2 * i + 1]]; \
+		d = ror32(d ^ a, 8);                     \
+		c += d;                                  \
+		b = ror32(b ^ c, 7);                     \
+	} while (0)
 
-#define ROUND(r) do { \
-	G(r, 0, v[0], v[ 4], v[ 8], v[12]); \
-	G(r, 1, v[1], v[ 5], v[ 9], v[13]); \
-	G(r, 2, v[2], v[ 6], v[10], v[14]); \
-	G(r, 3, v[3], v[ 7], v[11], v[15]); \
-	G(r, 4, v[0], v[ 5], v[10], v[15]); \
-	G(r, 5, v[1], v[ 6], v[11], v[12]); \
-	G(r, 6, v[2], v[ 7], v[ 8], v[13]); \
-	G(r, 7, v[3], v[ 4], v[ 9], v[14]); \
-} while (0)
+#define ROUND(r)                                   \
+	do {                                       \
+		G(r, 0, v[0], v[4], v[8], v[12]);  \
+		G(r, 1, v[1], v[5], v[9], v[13]);  \
+		G(r, 2, v[2], v[6], v[10], v[14]); \
+		G(r, 3, v[3], v[7], v[11], v[15]); \
+		G(r, 4, v[0], v[5], v[10], v[15]); \
+		G(r, 5, v[1], v[6], v[11], v[12]); \
+		G(r, 6, v[2], v[7], v[8], v[13]);  \
+		G(r, 7, v[3], v[4], v[9], v[14]);  \
+	} while (0)
 		ROUND(0);
 		ROUND(1);
 		ROUND(2);

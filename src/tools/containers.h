@@ -25,13 +25,11 @@ struct wgallowedip {
 	struct wgallowedip *next_allowedip;
 };
 
-enum {
-	WGPEER_REMOVE_ME = 1U << 0,
-	WGPEER_REPLACE_ALLOWEDIPS = 1U << 1,
-	WGPEER_HAS_PUBLIC_KEY = 1U << 2,
-	WGPEER_HAS_PRESHARED_KEY = 1U << 3,
-	WGPEER_HAS_PERSISTENT_KEEPALIVE_INTERVAL = 1U << 4
-};
+enum { WGPEER_REMOVE_ME = 1U << 0,
+       WGPEER_REPLACE_ALLOWEDIPS = 1U << 1,
+       WGPEER_HAS_PUBLIC_KEY = 1U << 2,
+       WGPEER_HAS_PRESHARED_KEY = 1U << 3,
+       WGPEER_HAS_PERSISTENT_KEEPALIVE_INTERVAL = 1U << 4 };
 
 struct wgpeer {
 	uint32_t flags;
@@ -53,13 +51,11 @@ struct wgpeer {
 	struct wgpeer *next_peer;
 };
 
-enum {
-	WGDEVICE_REPLACE_PEERS = 1U << 0,
-	WGDEVICE_HAS_PRIVATE_KEY = 1U << 1,
-	WGDEVICE_HAS_PUBLIC_KEY = 1U << 2,
-	WGDEVICE_HAS_LISTEN_PORT = 1U << 3,
-	WGDEVICE_HAS_FWMARK = 1U << 4
-};
+enum { WGDEVICE_REPLACE_PEERS = 1U << 0,
+       WGDEVICE_HAS_PRIVATE_KEY = 1U << 1,
+       WGDEVICE_HAS_PUBLIC_KEY = 1U << 2,
+       WGDEVICE_HAS_LISTEN_PORT = 1U << 3,
+       WGDEVICE_HAS_FWMARK = 1U << 4 };
 
 struct wgdevice {
 	char name[IFNAMSIZ];
@@ -76,15 +72,25 @@ struct wgdevice {
 	struct wgpeer *first_peer, *last_peer;
 };
 
-#define for_each_wgpeer(__dev, __peer) for ((__peer) = (__dev)->first_peer; (__peer); (__peer) = (__peer)->next_peer)
-#define for_each_wgallowedip(__peer, __allowedip) for ((__allowedip) = (__peer)->first_allowedip; (__allowedip); (__allowedip) = (__allowedip)->next_allowedip)
+#define for_each_wgpeer(__dev, __peer)                 \
+	for ((__peer) = (__dev)->first_peer; (__peer); \
+	     (__peer) = (__peer)->next_peer)
+#define for_each_wgallowedip(__peer, __allowedip)                      \
+	for ((__allowedip) = (__peer)->first_allowedip; (__allowedip); \
+	     (__allowedip) = (__allowedip)->next_allowedip)
 
 static inline void free_wgdevice(struct wgdevice *dev)
 {
 	if (!dev)
 		return;
-	for (struct wgpeer *peer = dev->first_peer, *np = peer ? peer->next_peer : NULL; peer; peer = np, np = peer ? peer->next_peer : NULL) {
-		for (struct wgallowedip *allowedip = peer->first_allowedip, *na = allowedip ? allowedip->next_allowedip : NULL; allowedip; allowedip = na, na = allowedip ? allowedip->next_allowedip : NULL)
+	for (struct wgpeer *peer = dev->first_peer,
+			   *np = peer ? peer->next_peer : NULL;
+	     peer; peer = np, np = peer ? peer->next_peer : NULL) {
+		for (struct wgallowedip *
+			     allowedip = peer->first_allowedip,
+			    *na = allowedip ? allowedip->next_allowedip : NULL;
+		     allowedip; allowedip = na,
+			    na = allowedip ? allowedip->next_allowedip : NULL)
 			free(allowedip);
 		free(peer);
 	}

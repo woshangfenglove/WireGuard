@@ -31,7 +31,8 @@ static void __init blake2s_fpu_init(void)
 		boot_cpu_has(X86_FEATURE_AVX512F) &&
 		boot_cpu_has(X86_FEATURE_AVX512VL) &&
 		cpu_has_xfeatures(XFEATURE_MASK_SSE | XFEATURE_MASK_YMM |
-				  XFEATURE_MASK_AVX512, NULL);
+					  XFEATURE_MASK_AVX512,
+				  NULL);
 #endif
 }
 
@@ -53,8 +54,8 @@ static inline bool blake2s_compress_arch(struct blake2s_state *state,
 	used_arch = true;
 
 	for (;;) {
-		const size_t blocks = min_t(size_t, nblocks,
-					    PAGE_SIZE / BLAKE2S_BLOCK_SIZE);
+		const size_t blocks =
+			min_t(size_t, nblocks, PAGE_SIZE / BLAKE2S_BLOCK_SIZE);
 
 		if (IS_ENABLED(CONFIG_AS_AVX512) && blake2s_use_avx512)
 			blake2s_compress_avx512(state, block, blocks, inc);

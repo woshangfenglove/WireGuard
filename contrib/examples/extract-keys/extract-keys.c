@@ -66,9 +66,12 @@ static unsigned long find_interface(const char *interface)
 		goto out;
 	while (fgets(line, 256, f)) {
 		ptr = line + strlen(line) - 1;
-		while (*--ptr == ' ');
-		while (*--ptr != ' ');
-		while (*(--ptr - 1) != ' ');
+		while (*--ptr == ' ')
+			;
+		while (*--ptr != ' ')
+			;
+		while (*(--ptr - 1) != ' ')
+			;
 		addr = strtoul(ptr, NULL, 16);
 		if (!addr)
 			continue;
@@ -111,7 +114,8 @@ static bool walk_peers(unsigned long peer_head)
 {
 	unsigned long peer, peer_entry;
 	bool found = false;
-	for (peer_entry = read_long(peer_head); peer_entry != peer_head; peer_entry = read_long(peer_entry)) {
+	for (peer_entry = read_long(peer_head); peer_entry != peer_head;
+	     peer_entry = read_long(peer_entry)) {
 		peer = peer_entry + PEERS_PEER_OFFSET;
 		if (print_key(read_long(peer + PEER_CURRENTKEY_OFFSET)))
 			found = true;

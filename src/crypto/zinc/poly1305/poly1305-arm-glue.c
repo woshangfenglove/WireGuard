@@ -70,14 +70,25 @@ static void convert_to_base2_64(void *ctx)
 	if (!IS_ENABLED(CONFIG_KERNEL_MODE_NEON) || !state->is_base2_26)
 		return;
 
-	cy = state->h[0] >> 26; state->h[0] &= 0x3ffffff; state->h[1] += cy;
-	cy = state->h[1] >> 26; state->h[1] &= 0x3ffffff; state->h[2] += cy;
-	cy = state->h[2] >> 26; state->h[2] &= 0x3ffffff; state->h[3] += cy;
-	cy = state->h[3] >> 26; state->h[3] &= 0x3ffffff; state->h[4] += cy;
-	state->h0 = ((u64)state->h[2] << 52) | ((u64)state->h[1] << 26) | state->h[0];
-	state->h1 = ((u64)state->h[4] << 40) | ((u64)state->h[3] << 14) | (state->h[2] >> 12);
+	cy = state->h[0] >> 26;
+	state->h[0] &= 0x3ffffff;
+	state->h[1] += cy;
+	cy = state->h[1] >> 26;
+	state->h[1] &= 0x3ffffff;
+	state->h[2] += cy;
+	cy = state->h[2] >> 26;
+	state->h[2] &= 0x3ffffff;
+	state->h[3] += cy;
+	cy = state->h[3] >> 26;
+	state->h[3] &= 0x3ffffff;
+	state->h[4] += cy;
+	state->h0 = ((u64)state->h[2] << 52) | ((u64)state->h[1] << 26) |
+		    state->h[0];
+	state->h1 = ((u64)state->h[4] << 40) | ((u64)state->h[3] << 14) |
+		    (state->h[2] >> 12);
 	state->h2 = state->h[4] >> 24;
-	if (IS_ENABLED(CONFIG_ZINC_ARCH_ARM) && IS_ENABLED(CONFIG_CPU_BIG_ENDIAN)) {
+	if (IS_ENABLED(CONFIG_ZINC_ARCH_ARM) &&
+	    IS_ENABLED(CONFIG_CPU_BIG_ENDIAN)) {
 		state->h0 = rol64(state->h0, 32);
 		state->h1 = rol64(state->h1, 32);
 	}
@@ -98,8 +109,8 @@ static inline bool poly1305_init_arch(void *ctx,
 	return true;
 }
 
-static inline bool poly1305_blocks_arch(void *ctx, const u8 *inp,
-					size_t len, const u32 padbit,
+static inline bool poly1305_blocks_arch(void *ctx, const u8 *inp, size_t len,
+					const u32 padbit,
 					simd_context_t *simd_context)
 {
 	/* SIMD disables preemption, so relax after processing each page. */

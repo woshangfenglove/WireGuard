@@ -51,11 +51,9 @@ static struct entry *find_or_insert_entry(uint8_t key[32])
 
 int main(int argc, char *argv[])
 {
-	struct sockaddr_in addr = {
-		.sin_family = AF_INET,
-		.sin_addr = { .s_addr = htonl(INADDR_ANY) },
-		.sin_port = htons(PORT)
-	};
+	struct sockaddr_in addr = { .sin_family = AF_INET,
+				    .sin_addr = { .s_addr = htonl(INADDR_ANY) },
+				    .sin_port = htons(PORT) };
 	struct {
 		uint8_t my_pubkey[32];
 		uint8_t their_pubkey[32];
@@ -75,7 +73,8 @@ int main(int argc, char *argv[])
 	}
 
 	optval = 1;
-	if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0) {
+	if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &optval,
+		       sizeof(optval)) < 0) {
 		perror("setsockopt");
 		return errno;
 	}
@@ -87,7 +86,9 @@ int main(int argc, char *argv[])
 
 	for (;;) {
 		len = sizeof(addr);
-		if (recvfrom(sock, &packet, sizeof(packet), 0, (struct sockaddr *)&addr, &len) != sizeof(packet)) {
+		if (recvfrom(sock, &packet, sizeof(packet), 0,
+			     (struct sockaddr *)&addr,
+			     &len) != sizeof(packet)) {
 			perror("recvfrom");
 			continue;
 		}
@@ -98,12 +99,14 @@ int main(int argc, char *argv[])
 		if (entry) {
 			reply.ip = entry->ip;
 			reply.port = entry->port;
-			if (sendto(sock, &reply, sizeof(reply), 0, (struct sockaddr *)&addr, len) < 0) {
+			if (sendto(sock, &reply, sizeof(reply), 0,
+				   (struct sockaddr *)&addr, len) < 0) {
 				perror("sendto");
 				continue;
 			}
 		} else {
-			if (sendto(sock, NULL, 0, 0, (struct sockaddr *)&addr, len) < 0) {
+			if (sendto(sock, NULL, 0, 0, (struct sockaddr *)&addr,
+				   len) < 0) {
 				perror("sendto");
 				continue;
 			}

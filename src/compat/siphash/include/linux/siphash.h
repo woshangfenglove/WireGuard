@@ -47,7 +47,6 @@ static inline u64 siphash_4u32(const u32 a, const u32 b, const u32 c,
 	return siphash_2u64((u64)b << 32 | a, (u64)d << 32 | c, key);
 }
 
-
 static inline u64 ___siphash_aligned(const __le64 *data, size_t len,
 				     const siphash_key_t *key)
 {
@@ -89,8 +88,7 @@ typedef struct {
 	unsigned long key[2];
 } hsiphash_key_t;
 
-u32 __hsiphash_aligned(const void *data, size_t len,
-		       const hsiphash_key_t *key);
+u32 __hsiphash_aligned(const void *data, size_t len, const hsiphash_key_t *key);
 #ifndef CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS
 u32 __hsiphash_unaligned(const void *data, size_t len,
 			 const hsiphash_key_t *key);

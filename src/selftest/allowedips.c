@@ -58,17 +58,17 @@ static __init void print_node(struct allowedips_node *node, u8 bits)
 	swap_endian_and_apply_cidr(ip1, node->bits, bits, node->cidr);
 	printk(fmt_declaration, ip1, node->cidr, style, color);
 	if (node->bit[0]) {
-		swap_endian_and_apply_cidr(ip2,
-				rcu_dereference_raw(node->bit[0])->bits, bits,
-				node->cidr);
+		swap_endian_and_apply_cidr(
+			ip2, rcu_dereference_raw(node->bit[0])->bits, bits,
+			node->cidr);
 		printk(fmt_connection, ip1, node->cidr, ip2,
 		       rcu_dereference_raw(node->bit[0])->cidr);
 		print_node(rcu_dereference_raw(node->bit[0]), bits);
 	}
 	if (node->bit[1]) {
-		swap_endian_and_apply_cidr(ip2,
-				rcu_dereference_raw(node->bit[1])->bits,
-				bits, node->cidr);
+		swap_endian_and_apply_cidr(
+			ip2, rcu_dereference_raw(node->bit[1])->bits, bits,
+			node->cidr);
 		printk(fmt_connection, ip1, node->cidr, ip2,
 		       rcu_dereference_raw(node->bit[1])->cidr);
 		print_node(rcu_dereference_raw(node->bit[1]), bits);
@@ -82,12 +82,10 @@ static __init void print_tree(struct allowedips_node __rcu *top, u8 bits)
 	printk(KERN_DEBUG "}\n");
 }
 
-enum {
-	NUM_PEERS = 2000,
-	NUM_RAND_ROUTES = 400,
-	NUM_MUTATED_ROUTES = 100,
-	NUM_QUERIES = NUM_RAND_ROUTES * NUM_MUTATED_ROUTES * 30
-};
+enum { NUM_PEERS = 2000,
+       NUM_RAND_ROUTES = 400,
+       NUM_MUTATED_ROUTES = 100,
+       NUM_QUERIES = NUM_RAND_ROUTES * NUM_MUTATED_ROUTES * 30 };
 
 struct horrible_allowedips {
 	struct hlist_head head;
@@ -111,7 +109,7 @@ static __init void horrible_allowedips_free(struct horrible_allowedips *table)
 	struct horrible_allowedips_node *node;
 	struct hlist_node *h;
 
-	hlist_for_each_entry_safe(node, h, &table->head, table) {
+	hlist_for_each_entry_safe (node, h, &table->head, table) {
 		hlist_del(&node->table);
 		kfree(node);
 	}
@@ -175,7 +173,7 @@ horrible_insert_ordered(struct horrible_allowedips *table,
 	struct horrible_allowedips_node *other = NULL, *where = NULL;
 	u8 my_cidr = horrible_mask_to_cidr(node->mask);
 
-	hlist_for_each_entry(other, &table->head, table) {
+	hlist_for_each_entry (other, &table->head, table) {
 		if (!memcmp(&other->mask, &node->mask,
 			    sizeof(union nf_inet_addr)) &&
 		    !memcmp(&other->ip, &node->ip,
@@ -201,8 +199,8 @@ static __init int
 horrible_allowedips_insert_v4(struct horrible_allowedips *table,
 			      struct in_addr *ip, u8 cidr, void *value)
 {
-	struct horrible_allowedips_node *node = kzalloc(sizeof(*node),
-							GFP_KERNEL);
+	struct horrible_allowedips_node *node =
+		kzalloc(sizeof(*node), GFP_KERNEL);
 
 	if (unlikely(!node))
 		return -ENOMEM;
@@ -219,8 +217,8 @@ static __init int
 horrible_allowedips_insert_v6(struct horrible_allowedips *table,
 			      struct in6_addr *ip, u8 cidr, void *value)
 {
-	struct horrible_allowedips_node *node = kzalloc(sizeof(*node),
-							GFP_KERNEL);
+	struct horrible_allowedips_node *node =
+		kzalloc(sizeof(*node), GFP_KERNEL);
 
 	if (unlikely(!node))
 		return -ENOMEM;
@@ -240,7 +238,7 @@ horrible_allowedips_lookup_v4(struct horrible_allowedips *table,
 	struct horrible_allowedips_node *node;
 	void *ret = NULL;
 
-	hlist_for_each_entry(node, &table->head, table) {
+	hlist_for_each_entry (node, &table->head, table) {
 		if (node->ip_version != 4)
 			continue;
 		if (horrible_match_v4(node, ip)) {
@@ -258,7 +256,7 @@ horrible_allowedips_lookup_v6(struct horrible_allowedips *table,
 	struct horrible_allowedips_node *node;
 	void *ret = NULL;
 
-	hlist_for_each_entry(node, &table->head, table) {
+	hlist_for_each_entry (node, &table->head, table) {
 		if (node->ip_version != 6)
 			continue;
 		if (horrible_match_v6(node, ip)) {
@@ -336,8 +334,9 @@ static __init bool randomized_test(void)
 				pr_err("allowedips random malloc: FAIL\n");
 				goto free;
 			}
-			if (horrible_allowedips_insert_v4(&h,
-				(struct in_addr *)mutated, cidr, peer)) {
+			if (horrible_allowedips_insert_v4(
+				    &h, (struct in_addr *)mutated, cidr,
+				    peer)) {
 				pr_err("allowedips random self-test malloc: FAIL\n");
 				goto free;
 			}
@@ -500,7 +499,8 @@ static __init struct wg_peer *init_peer(void)
 	wg_allowedips_insert_v##version(&t, ip##version(ipa, ipb, ipc, ipd), \
 					cidr, mem, &mutex)
 
-#define maybe_fail() do {                                               \
+#define maybe_fail()                                                    \
+	do {                                                            \
 		++i;                                                    \
 		if (!_s) {                                              \
 			pr_info("allowedips self-test %zu: FAIL\n", i); \
@@ -508,19 +508,22 @@ static __init struct wg_peer *init_peer(void)
 		}                                                       \
 	} while (0)
 
-#define test(version, mem, ipa, ipb, ipc, ipd) do {                          \
+#define test(version, mem, ipa, ipb, ipc, ipd)                               \
+	do {                                                                 \
 		bool _s = lookup(t.root##version, (version) == 4 ? 32 : 128, \
 				 ip##version(ipa, ipb, ipc, ipd)) == (mem);  \
 		maybe_fail();                                                \
 	} while (0)
 
-#define test_negative(version, mem, ipa, ipb, ipc, ipd) do {                 \
+#define test_negative(version, mem, ipa, ipb, ipc, ipd)                      \
+	do {                                                                 \
 		bool _s = lookup(t.root##version, (version) == 4 ? 32 : 128, \
 				 ip##version(ipa, ipb, ipc, ipd)) != (mem);  \
 		maybe_fail();                                                \
 	} while (0)
 
-#define test_boolean(cond) do {   \
+#define test_boolean(cond)        \
+	do {                      \
 		bool _s = (cond); \
 		maybe_fail();     \
 	} while (0)

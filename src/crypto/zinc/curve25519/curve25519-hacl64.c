@@ -578,8 +578,8 @@ static __always_inline void ladder_bigloop_cmult_big_loop(u8 *n1, u64 *nq,
 {
 	while (i--) {
 		u8 byte = n1[i];
-		ladder_smallloop_cmult_small_loop(nq, nqpq, nq2, nqpq2, q,
-						  byte, 4);
+		ladder_smallloop_cmult_small_loop(nq, nqpq, nq2, nqpq2, q, byte,
+						  4);
 	}
 }
 

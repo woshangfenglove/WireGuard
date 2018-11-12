@@ -24,8 +24,9 @@ void wg_timers_any_authenticated_packet_traversal(struct wg_peer *peer);
 static inline bool wg_birthdate_has_expired(u64 birthday_nanoseconds,
 					    u64 expiration_seconds)
 {
-	return (s64)(birthday_nanoseconds + expiration_seconds * NSEC_PER_SEC)
-		<= (s64)ktime_get_boot_fast_ns();
+	return (s64)(birthday_nanoseconds +
+		     expiration_seconds * NSEC_PER_SEC) <=
+	       (s64)ktime_get_boot_fast_ns();
 }
 
 #endif /* _WG_TIMERS_H */

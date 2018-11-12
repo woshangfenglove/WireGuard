@@ -106,10 +106,10 @@ static void apply_bpf(int sock, uint16_t port, uint32_t ip)
 		BPF_STMT(BPF_RET + BPF_K, 0)
 	};
 	struct sock_fprog filter_prog = {
-		.len = sizeof(filter) / sizeof(filter[0]),
-		.filter = filter
+		.len = sizeof(filter) / sizeof(filter[0]), .filter = filter
 	};
-	if (setsockopt(sock, SOL_SOCKET, SO_ATTACH_FILTER, &filter_prog, sizeof(filter_prog)) < 0) {
+	if (setsockopt(sock, SOL_SOCKET, SO_ATTACH_FILTER, &filter_prog,
+		       sizeof(filter_prog)) < 0) {
 		perror("setsockopt(bpf)");
 		exit(errno);
 	}
@@ -117,19 +117,14 @@ static void apply_bpf(int sock, uint16_t port, uint32_t ip)
 
 int main(int argc, char *argv[])
 {
-	struct sockaddr_in addr = {
-		.sin_family = AF_INET
-	};
+	struct sockaddr_in addr = { .sin_family = AF_INET };
 	struct {
 		struct udphdr udp;
 		uint8_t my_pubkey[32];
 		uint8_t their_pubkey[32];
-	} __attribute__((packed)) packet = {
-		.udp = {
-			.len = htons(sizeof(packet)),
-			.dest = htons(PORT)
-		}
-	};
+	} __attribute__((packed))
+	packet = { .udp = { .len = htons(sizeof(packet)),
+			    .dest = htons(PORT) } };
 	struct {
 		struct iphdr iphdr;
 		struct udphdr udp;
@@ -143,7 +138,9 @@ int main(int argc, char *argv[])
 	const char *server = argv[1], *interface = argv[2];
 
 	if (argc < 3) {
-		fprintf(stderr, "Usage: %s SERVER WIREGUARD_INTERFACE\nExample:\n    %s demo.wireguard.com wg0\n", argv[0], argv[0]);
+		fprintf(stderr,
+			"Usage: %s SERVER WIREGUARD_INTERFACE\nExample:\n    %s demo.wireguard.com wg0\n",
+			argv[0], argv[0]);
 		return EINVAL;
 	}
 
@@ -161,7 +158,8 @@ int main(int argc, char *argv[])
 	read_peers(interface);
 	cmd("ip link set %s up", interface);
 	unbase64(packet.my_pubkey, cmd("wg show %s public-key", interface));
-	packet.udp.source = htons(atoi(cmd("wg show %s listen-port", interface)));
+	packet.udp.source =
+		htons(atoi(cmd("wg show %s listen-port", interface)));
 
 	/* We use raw sockets so that the WireGuard interface can actually own the real socket. */
 	sock = socket(AF_INET, SOCK_RAW, IPPROTO_UDP);
@@ -176,9 +174,11 @@ check_again:
 	for (i = 0; i < total_peers; ++i) {
 		if (peers[i].have_seen)
 			continue;
-		printf("[+] Requesting IP and port of %s: ", peers[i].base64_key);
+		printf("[+] Requesting IP and port of %s: ",
+		       peers[i].base64_key);
 		unbase64(packet.their_pubkey, peers[i].base64_key);
-		if (sendto(sock, &packet, sizeof(packet), 0, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+		if (sendto(sock, &packet, sizeof(packet), 0,
+			   (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 			putchar('\n');
 			perror("sendto");
 			return errno;
@@ -193,9 +193,14 @@ check_again:
 			printf("server does not yet have it\n");
 			repeat = true;
 		} else {
-			printf("%s:%d\n", inet_ntoa(*(struct in_addr *)&reply.ip), ntohs(reply.port));
+			printf("%s:%d\n",
+			       inet_ntoa(*(struct in_addr *)&reply.ip),
+			       ntohs(reply.port));
 			peers[i].have_seen = true;
-			cmd("wg set %s peer %s persistent-keepalive 25 endpoint %s:%d", interface, peers[i].base64_key, inet_ntoa(*(struct in_addr *)&reply.ip), ntohs(reply.port));
+			cmd("wg set %s peer %s persistent-keepalive 25 endpoint %s:%d",
+			    interface, peers[i].base64_key,
+			    inet_ntoa(*(struct in_addr *)&reply.ip),
+			    ntohs(reply.port));
 		}
 	}
 	if (repeat) {

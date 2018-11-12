@@ -278,8 +278,8 @@ static inline void *__ptr_ring_consume(struct ptr_ring *r)
 	return ptr;
 }
 
-static inline int __ptr_ring_consume_batched(struct ptr_ring *r,
-					     void **array, int n)
+static inline int __ptr_ring_consume_batched(struct ptr_ring *r, void **array,
+					     int n)
 {
 	void *ptr;
 	int i;
@@ -344,8 +344,8 @@ static inline void *ptr_ring_consume_bh(struct ptr_ring *r)
 	return ptr;
 }
 
-static inline int ptr_ring_consume_batched(struct ptr_ring *r,
-					   void **array, int n)
+static inline int ptr_ring_consume_batched(struct ptr_ring *r, void **array,
+					   int n)
 {
 	int ret;
 
@@ -356,8 +356,8 @@ static inline int ptr_ring_consume_batched(struct ptr_ring *r,
 	return ret;
 }
 
-static inline int ptr_ring_consume_batched_irq(struct ptr_ring *r,
-					       void **array, int n)
+static inline int ptr_ring_consume_batched_irq(struct ptr_ring *r, void **array,
+					       int n)
 {
 	int ret;
 
@@ -368,8 +368,8 @@ static inline int ptr_ring_consume_batched_irq(struct ptr_ring *r,
 	return ret;
 }
 
-static inline int ptr_ring_consume_batched_any(struct ptr_ring *r,
-					       void **array, int n)
+static inline int ptr_ring_consume_batched_any(struct ptr_ring *r, void **array,
+					       int n)
 {
 	unsigned long flags;
 	int ret;
@@ -381,8 +381,8 @@ static inline int ptr_ring_consume_batched_any(struct ptr_ring *r,
 	return ret;
 }
 
-static inline int ptr_ring_consume_batched_bh(struct ptr_ring *r,
-					      void **array, int n)
+static inline int ptr_ring_consume_batched_bh(struct ptr_ring *r, void **array,
+					      int n)
 {
 	int ret;
 
@@ -399,42 +399,48 @@ static inline int ptr_ring_consume_batched_bh(struct ptr_ring *r,
  */
 #define __PTR_RING_PEEK_CALL(r, f) ((f)(__ptr_ring_peek(r)))
 
-#define PTR_RING_PEEK_CALL(r, f) ({ \
-	typeof((f)(NULL)) __PTR_RING_PEEK_CALL_v; \
-	\
-	spin_lock(&(r)->consumer_lock); \
-	__PTR_RING_PEEK_CALL_v = __PTR_RING_PEEK_CALL(r, f); \
-	spin_unlock(&(r)->consumer_lock); \
-	__PTR_RING_PEEK_CALL_v; \
-})
+#define PTR_RING_PEEK_CALL(r, f)                                     \
+	({                                                           \
+		typeof((f)(NULL)) __PTR_RING_PEEK_CALL_v;            \
+                                                                     \
+		spin_lock(&(r)->consumer_lock);                      \
+		__PTR_RING_PEEK_CALL_v = __PTR_RING_PEEK_CALL(r, f); \
+		spin_unlock(&(r)->consumer_lock);                    \
+		__PTR_RING_PEEK_CALL_v;                              \
+	})
 
-#define PTR_RING_PEEK_CALL_IRQ(r, f) ({ \
-	typeof((f)(NULL)) __PTR_RING_PEEK_CALL_v; \
-	\
-	spin_lock_irq(&(r)->consumer_lock); \
-	__PTR_RING_PEEK_CALL_v = __PTR_RING_PEEK_CALL(r, f); \
-	spin_unlock_irq(&(r)->consumer_lock); \
-	__PTR_RING_PEEK_CALL_v; \
-})
+#define PTR_RING_PEEK_CALL_IRQ(r, f)                                 \
+	({                                                           \
+		typeof((f)(NULL)) __PTR_RING_PEEK_CALL_v;            \
+                                                                     \
+		spin_lock_irq(&(r)->consumer_lock);                  \
+		__PTR_RING_PEEK_CALL_v = __PTR_RING_PEEK_CALL(r, f); \
+		spin_unlock_irq(&(r)->consumer_lock);                \
+		__PTR_RING_PEEK_CALL_v;                              \
+	})
 
-#define PTR_RING_PEEK_CALL_BH(r, f) ({ \
-	typeof((f)(NULL)) __PTR_RING_PEEK_CALL_v; \
-	\
-	spin_lock_bh(&(r)->consumer_lock); \
-	__PTR_RING_PEEK_CALL_v = __PTR_RING_PEEK_CALL(r, f); \
-	spin_unlock_bh(&(r)->consumer_lock); \
-	__PTR_RING_PEEK_CALL_v; \
-})
+#define PTR_RING_PEEK_CALL_BH(r, f)                                  \
+	({                                                           \
+		typeof((f)(NULL)) __PTR_RING_PEEK_CALL_v;            \
+                                                                     \
+		spin_lock_bh(&(r)->consumer_lock);                   \
+		__PTR_RING_PEEK_CALL_v = __PTR_RING_PEEK_CALL(r, f); \
+		spin_unlock_bh(&(r)->consumer_lock);                 \
+		__PTR_RING_PEEK_CALL_v;                              \
+	})
 
-#define PTR_RING_PEEK_CALL_ANY(r, f) ({ \
-	typeof((f)(NULL)) __PTR_RING_PEEK_CALL_v; \
-	unsigned long __PTR_RING_PEEK_CALL_f;\
-	\
-	spin_lock_irqsave(&(r)->consumer_lock, __PTR_RING_PEEK_CALL_f); \
-	__PTR_RING_PEEK_CALL_v = __PTR_RING_PEEK_CALL(r, f); \
-	spin_unlock_irqrestore(&(r)->consumer_lock, __PTR_RING_PEEK_CALL_f); \
-	__PTR_RING_PEEK_CALL_v; \
-})
+#define PTR_RING_PEEK_CALL_ANY(r, f)                                 \
+	({                                                           \
+		typeof((f)(NULL)) __PTR_RING_PEEK_CALL_v;            \
+		unsigned long __PTR_RING_PEEK_CALL_f;                \
+                                                                     \
+		spin_lock_irqsave(&(r)->consumer_lock,               \
+				  __PTR_RING_PEEK_CALL_f);           \
+		__PTR_RING_PEEK_CALL_v = __PTR_RING_PEEK_CALL(r, f); \
+		spin_unlock_irqrestore(&(r)->consumer_lock,          \
+				       __PTR_RING_PEEK_CALL_f);      \
+		__PTR_RING_PEEK_CALL_v;                              \
+	})
 
 static inline void **__ptr_ring_init_queue_alloc(unsigned int size, gfp_t gfp)
 {
@@ -583,8 +589,7 @@ static inline int ptr_ring_resize(struct ptr_ring *r, int size, gfp_t gfp,
  * disable interrupts/BH when doing so.
  */
 static inline int ptr_ring_resize_multiple(struct ptr_ring **rings,
-					   unsigned int nrings,
-					   int size,
+					   unsigned int nrings, int size,
 					   gfp_t gfp, void (*destroy)(void *))
 {
 	unsigned long flags;
@@ -604,8 +609,8 @@ static inline int ptr_ring_resize_multiple(struct ptr_ring **rings,
 	for (i = 0; i < nrings; ++i) {
 		spin_lock_irqsave(&(rings[i])->consumer_lock, flags);
 		spin_lock(&(rings[i])->producer_lock);
-		queues[i] = __ptr_ring_swap_queue(rings[i], queues[i],
-						  size, gfp, destroy);
+		queues[i] = __ptr_ring_swap_queue(rings[i], queues[i], size,
+						  gfp, destroy);
 		spin_unlock(&(rings[i])->producer_lock);
 		spin_unlock_irqrestore(&(rings[i])->consumer_lock, flags);
 	}

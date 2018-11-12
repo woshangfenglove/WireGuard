@@ -8,9 +8,7 @@
 
 #include <linux/types.h>
 
-enum curve25519_lengths {
-	CURVE25519_KEY_SIZE = 32
-};
+enum curve25519_lengths { CURVE25519_KEY_SIZE = 32 };
 
 bool __must_check curve25519(u8 mypublic[CURVE25519_KEY_SIZE],
 			     const u8 secret[CURVE25519_KEY_SIZE],

@@ -35,7 +35,7 @@ static struct nlmsghdr *__mnlg_msg_prepare(struct mnlg_socket *nlg, uint8_t cmd,
 	struct genlmsghdr *genl;
 
 	nlh = mnl_nlmsg_put_header(nlg->buf);
-	nlh->nlmsg_type	= id;
+	nlh->nlmsg_type = id;
 	nlh->nlmsg_flags = flags;
 	nlg->seq = time(NULL);
 	nlh->nlmsg_seq = nlg->seq;
@@ -86,7 +86,8 @@ static int mnlg_cb_error(const struct nlmsghdr *nlh, void *data)
 static int mnlg_cb_stop(const struct nlmsghdr *nlh, void *data)
 {
 	(void)data;
-	if (nlh->nlmsg_flags & NLM_F_MULTI && nlh->nlmsg_len == mnl_nlmsg_size(sizeof(int))) {
+	if (nlh->nlmsg_flags & NLM_F_MULTI &&
+	    nlh->nlmsg_len == mnl_nlmsg_size(sizeof(int))) {
 		int error = *(int *)mnl_nlmsg_get_payload(nlh);
 		/* Netlink subsystems returns the errno value with different signess */
 		if (error < 0)
@@ -100,10 +101,10 @@ static int mnlg_cb_stop(const struct nlmsghdr *nlh, void *data)
 }
 
 static mnl_cb_t mnlg_cb_array[] = {
-	[NLMSG_NOOP]	= mnlg_cb_noop,
-	[NLMSG_ERROR]	= mnlg_cb_error,
-	[NLMSG_DONE]	= mnlg_cb_stop,
-	[NLMSG_OVERRUN]	= mnlg_cb_noop,
+	[NLMSG_NOOP] = mnlg_cb_noop,
+	[NLMSG_ERROR] = mnlg_cb_error,
+	[NLMSG_DONE] = mnlg_cb_stop,
+	[NLMSG_OVERRUN] = mnlg_cb_noop,
 };
 
 int mnlg_socket_recv_run(struct mnlg_socket *nlg, mnl_cb_t data_cb, void *data)
@@ -115,8 +116,9 @@ int mnlg_socket_recv_run(struct mnlg_socket *nlg, mnl_cb_t data_cb, void *data)
 					  MNL_SOCKET_BUFFER_SIZE);
 		if (err <= 0)
 			break;
-		err = mnl_cb_run2(nlg->buf, err, nlg->seq, nlg->portid,
-				  data_cb, data, mnlg_cb_array, MNL_ARRAY_SIZE(mnlg_cb_array));
+		err = mnl_cb_run2(nlg->buf, err, nlg->seq, nlg->portid, data_cb,
+				  data, mnlg_cb_array,
+				  MNL_ARRAY_SIZE(mnlg_cb_array));
 	} while (err > 0);
 
 	return err;
@@ -193,7 +195,8 @@ static int get_group_id_cb(const struct nlmsghdr *nlh, void *data)
 	struct group_info *group_info = data;
 	struct nlattr *tb[CTRL_ATTR_MAX + 1] = { 0 };
 
-	mnl_attr_parse(nlh, sizeof(struct genlmsghdr), get_group_id_attr_cb, tb);
+	mnl_attr_parse(nlh, sizeof(struct genlmsghdr), get_group_id_attr_cb,
+		       tb);
 	if (!tb[CTRL_ATTR_MCAST_GROUPS])
 		return MNL_CB_ERROR;
 	parse_genl_mc_grps(tb[CTRL_ATTR_MCAST_GROUPS], group_info);
@@ -253,7 +256,8 @@ static int get_family_id_cb(const struct nlmsghdr *nlh, void *data)
 	uint16_t *p_id = data;
 	struct nlattr *tb[CTRL_ATTR_MAX + 1] = { 0 };
 
-	mnl_attr_parse(nlh, sizeof(struct genlmsghdr), get_family_id_attr_cb, tb);
+	mnl_attr_parse(nlh, sizeof(struct genlmsghdr), get_family_id_attr_cb,
+		       tb);
 	if (!tb[CTRL_ATTR_FAMILY_ID])
 		return MNL_CB_ERROR;
 	*p_id = mnl_attr_get_u16(tb[CTRL_ATTR_FAMILY_ID]);

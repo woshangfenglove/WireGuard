@@ -28,8 +28,8 @@ static inline bool poly1305_init_arch(void *ctx,
 {
 	return false;
 }
-static inline bool poly1305_blocks_arch(void *ctx, const u8 *input,
-					size_t len, const u32 padbit,
+static inline bool poly1305_blocks_arch(void *ctx, const u8 *input, size_t len,
+					const u32 padbit,
 					simd_context_t *simd_context)
 {
 	return false;
@@ -40,7 +40,7 @@ static inline bool poly1305_emit_arch(void *ctx, u8 mac[POLY1305_MAC_SIZE],
 {
 	return false;
 }
-static bool *const poly1305_nobs[] __initconst = { };
+static bool *const poly1305_nobs[] __initconst = {};
 static void __init poly1305_fpu_init(void)
 {
 }

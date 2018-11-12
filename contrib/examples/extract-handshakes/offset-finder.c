@@ -14,10 +14,15 @@ extern const struct def defs[];
 #include "../../../src/noise.h"
 
 const struct def defs[] = {
-	{ "LOCAL_STATIC_PRIVATE_KEY", offsetof(struct noise_static_identity, static_private), offsetof(struct noise_handshake, static_identity) },
-	{ "LOCAL_EPHEMERAL_PRIVATE_KEY", offsetof(struct noise_handshake, ephemeral_private), -1 },
-	{ "REMOTE_STATIC_PUBLIC_KEY", offsetof(struct noise_handshake, remote_static), -1 },
-	{ "PRESHARED_KEY", offsetof(struct noise_handshake, preshared_key), -1 },
+	{ "LOCAL_STATIC_PRIVATE_KEY",
+	  offsetof(struct noise_static_identity, static_private),
+	  offsetof(struct noise_handshake, static_identity) },
+	{ "LOCAL_EPHEMERAL_PRIVATE_KEY",
+	  offsetof(struct noise_handshake, ephemeral_private), -1 },
+	{ "REMOTE_STATIC_PUBLIC_KEY",
+	  offsetof(struct noise_handshake, remote_static), -1 },
+	{ "PRESHARED_KEY", offsetof(struct noise_handshake, preshared_key),
+	  -1 },
 	{ NULL, 0 }
 };
 #else
