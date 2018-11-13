@@ -40,6 +40,7 @@ static void read_kmem(void *buffer, size_t len, unsigned long addr)
 static inline unsigned int read_int(unsigned long addr)
 {
 	unsigned int ret;
+
 	read_kmem(&ret, sizeof(ret), addr);
 	return ret;
 }
@@ -47,6 +48,7 @@ static inline unsigned int read_int(unsigned long addr)
 static inline unsigned long read_long(unsigned long addr)
 {
 	unsigned long ret;
+
 	read_kmem(&ret, sizeof(ret), addr);
 	return ret;
 }
@@ -111,7 +113,9 @@ static bool walk_peers(unsigned long peer_head)
 {
 	unsigned long peer, peer_entry;
 	bool found = false;
-	for (peer_entry = read_long(peer_head); peer_entry != peer_head; peer_entry = read_long(peer_entry)) {
+
+	for (peer_entry = read_long(peer_head); peer_entry != peer_head;
+	     peer_entry = read_long(peer_entry)) {
 		peer = peer_entry + PEERS_PEER_OFFSET;
 		if (print_key(read_long(peer + PEER_CURRENTKEY_OFFSET)))
 			found = true;
@@ -126,6 +130,7 @@ static bool walk_peers(unsigned long peer_head)
 int main(int argc, char *argv[])
 {
 	unsigned long wireguard_device;
+
 	if (argc < 2) {
 		fprintf(stderr, "Usage: %s WIREGUARD_INTERFACE\n", argv[0]);
 		return EINVAL;

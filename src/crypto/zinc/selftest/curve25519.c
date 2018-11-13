@@ -9,7 +9,8 @@ struct curve25519_test_vector {
 	u8 result[CURVE25519_KEY_SIZE];
 	bool valid;
 };
-static const struct curve25519_test_vector curve25519_test_vectors[] __initconst = {
+static const struct curve25519_test_vector curve25519_test_vectors[] __initconst
+	= {
 	{
 		.private = { 0x77, 0x07, 0x6d, 0x0a, 0x73, 0x18, 0xa5, 0x7d,
 			     0x3c, 0x16, 0xc1, 0x72, 0x51, 0xb2, 0x66, 0x45,
@@ -1276,7 +1277,7 @@ static const struct curve25519_test_vector curve25519_test_vectors[] __initconst
 			    0xd9, 0x8b, 0xb9, 0x1b, 0x3e, 0x0b, 0xe0, 0x35 },
 		.valid = true
 	}
-};
+	};
 
 static bool __init curve25519_selftest(void)
 {
@@ -1302,8 +1303,9 @@ static bool __init curve25519_selftest(void)
 		ret = curve25519_generate_public(out, in);
 		ret2 = curve25519(out2, in, (u8[CURVE25519_KEY_SIZE]){ 9 });
 		if (ret != ret2 || memcmp(out, out2, CURVE25519_KEY_SIZE)) {
-			pr_err("curve25519 basepoint self-test %zu: FAIL: input - 0x",
-			       i + 1);
+			pr_err(
+				"curve25519 basepoint self-test %zu: FAIL: input - 0x",
+				i + 1);
 			for (j = CURVE25519_KEY_SIZE; j-- > 0;)
 				printk(KERN_CONT "%02x", in[j]);
 			printk(KERN_CONT "\n");

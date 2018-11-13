@@ -62,7 +62,7 @@
 #include <crypto/algapi.h>
 
 /* Make the optimizer believe the variable can be manipulated arbitrarily. */
-#define COMPILER_OPTIMIZER_HIDE_VAR(var) asm("" : "=r" (var) : "0" (var))
+#define COMPILER_OPTIMIZER_HIDE_VAR(var) asm ("" : "=r" (var) : "0" (var))
 
 #ifndef __HAVE_ARCH_CRYPTO_MEMNEQ
 
@@ -98,53 +98,53 @@ static inline unsigned long __crypto_memneq_16(const void *a, const void *b)
 
 #ifdef CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS
 	if (sizeof(unsigned long) == 8) {
-		neq |= *(unsigned long *)(a)   ^ *(unsigned long *)(b);
+		neq |= *(unsigned long *)(a) ^ *(unsigned long *)(b);
 		COMPILER_OPTIMIZER_HIDE_VAR(neq);
-		neq |= *(unsigned long *)(a+8) ^ *(unsigned long *)(b+8);
+		neq |= *(unsigned long *)(a + 8) ^ *(unsigned long *)(b + 8);
 		COMPILER_OPTIMIZER_HIDE_VAR(neq);
 	} else if (sizeof(unsigned int) == 4) {
-		neq |= *(unsigned int *)(a)    ^ *(unsigned int *)(b);
+		neq |= *(unsigned int *)(a) ^ *(unsigned int *)(b);
 		COMPILER_OPTIMIZER_HIDE_VAR(neq);
-		neq |= *(unsigned int *)(a+4)  ^ *(unsigned int *)(b+4);
+		neq |= *(unsigned int *)(a + 4) ^ *(unsigned int *)(b + 4);
 		COMPILER_OPTIMIZER_HIDE_VAR(neq);
-		neq |= *(unsigned int *)(a+8)  ^ *(unsigned int *)(b+8);
+		neq |= *(unsigned int *)(a + 8) ^ *(unsigned int *)(b + 8);
 		COMPILER_OPTIMIZER_HIDE_VAR(neq);
-		neq |= *(unsigned int *)(a+12) ^ *(unsigned int *)(b+12);
+		neq |= *(unsigned int *)(a + 12) ^ *(unsigned int *)(b + 12);
 		COMPILER_OPTIMIZER_HIDE_VAR(neq);
 	} else
 #endif /* CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS */
 	{
-		neq |= *(unsigned char *)(a)    ^ *(unsigned char *)(b);
+		neq |= *(unsigned char *)(a) ^ *(unsigned char *)(b);
 		COMPILER_OPTIMIZER_HIDE_VAR(neq);
-		neq |= *(unsigned char *)(a+1)  ^ *(unsigned char *)(b+1);
+		neq |= *(unsigned char *)(a + 1) ^ *(unsigned char *)(b + 1);
 		COMPILER_OPTIMIZER_HIDE_VAR(neq);
-		neq |= *(unsigned char *)(a+2)  ^ *(unsigned char *)(b+2);
+		neq |= *(unsigned char *)(a + 2) ^ *(unsigned char *)(b + 2);
 		COMPILER_OPTIMIZER_HIDE_VAR(neq);
-		neq |= *(unsigned char *)(a+3)  ^ *(unsigned char *)(b+3);
+		neq |= *(unsigned char *)(a + 3) ^ *(unsigned char *)(b + 3);
 		COMPILER_OPTIMIZER_HIDE_VAR(neq);
-		neq |= *(unsigned char *)(a+4)  ^ *(unsigned char *)(b+4);
+		neq |= *(unsigned char *)(a + 4) ^ *(unsigned char *)(b + 4);
 		COMPILER_OPTIMIZER_HIDE_VAR(neq);
-		neq |= *(unsigned char *)(a+5)  ^ *(unsigned char *)(b+5);
+		neq |= *(unsigned char *)(a + 5) ^ *(unsigned char *)(b + 5);
 		COMPILER_OPTIMIZER_HIDE_VAR(neq);
-		neq |= *(unsigned char *)(a+6)  ^ *(unsigned char *)(b+6);
+		neq |= *(unsigned char *)(a + 6) ^ *(unsigned char *)(b + 6);
 		COMPILER_OPTIMIZER_HIDE_VAR(neq);
-		neq |= *(unsigned char *)(a+7)  ^ *(unsigned char *)(b+7);
+		neq |= *(unsigned char *)(a + 7) ^ *(unsigned char *)(b + 7);
 		COMPILER_OPTIMIZER_HIDE_VAR(neq);
-		neq |= *(unsigned char *)(a+8)  ^ *(unsigned char *)(b+8);
+		neq |= *(unsigned char *)(a + 8) ^ *(unsigned char *)(b + 8);
 		COMPILER_OPTIMIZER_HIDE_VAR(neq);
-		neq |= *(unsigned char *)(a+9)  ^ *(unsigned char *)(b+9);
+		neq |= *(unsigned char *)(a + 9) ^ *(unsigned char *)(b + 9);
 		COMPILER_OPTIMIZER_HIDE_VAR(neq);
-		neq |= *(unsigned char *)(a+10) ^ *(unsigned char *)(b+10);
+		neq |= *(unsigned char *)(a + 10) ^ *(unsigned char *)(b + 10);
 		COMPILER_OPTIMIZER_HIDE_VAR(neq);
-		neq |= *(unsigned char *)(a+11) ^ *(unsigned char *)(b+11);
+		neq |= *(unsigned char *)(a + 11) ^ *(unsigned char *)(b + 11);
 		COMPILER_OPTIMIZER_HIDE_VAR(neq);
-		neq |= *(unsigned char *)(a+12) ^ *(unsigned char *)(b+12);
+		neq |= *(unsigned char *)(a + 12) ^ *(unsigned char *)(b + 12);
 		COMPILER_OPTIMIZER_HIDE_VAR(neq);
-		neq |= *(unsigned char *)(a+13) ^ *(unsigned char *)(b+13);
+		neq |= *(unsigned char *)(a + 13) ^ *(unsigned char *)(b + 13);
 		COMPILER_OPTIMIZER_HIDE_VAR(neq);
-		neq |= *(unsigned char *)(a+14) ^ *(unsigned char *)(b+14);
+		neq |= *(unsigned char *)(a + 14) ^ *(unsigned char *)(b + 14);
 		COMPILER_OPTIMIZER_HIDE_VAR(neq);
-		neq |= *(unsigned char *)(a+15) ^ *(unsigned char *)(b+15);
+		neq |= *(unsigned char *)(a + 15) ^ *(unsigned char *)(b + 15);
 		COMPILER_OPTIMIZER_HIDE_VAR(neq);
 	}
 

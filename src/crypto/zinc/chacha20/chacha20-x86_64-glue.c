@@ -25,7 +25,8 @@ static bool chacha20_use_avx512 __ro_after_init;
 static bool chacha20_use_avx512vl __ro_after_init;
 static bool *const chacha20_nobs[] __initconst = {
 	&chacha20_use_ssse3, &chacha20_use_avx2, &chacha20_use_avx512,
-	&chacha20_use_avx512vl };
+	&chacha20_use_avx512vl
+};
 
 static void __init chacha20_fpu_init(void)
 {
@@ -70,10 +71,13 @@ static inline bool chacha20_arch(struct chacha20_ctx *ctx, u8 *dst,
 
 		if (IS_ENABLED(CONFIG_AS_AVX512) && chacha20_use_avx512 &&
 		    len >= CHACHA20_BLOCK_SIZE * 8)
-			chacha20_avx512(dst, src, bytes, ctx->key, ctx->counter);
-		else if (IS_ENABLED(CONFIG_AS_AVX512) && chacha20_use_avx512vl &&
+			chacha20_avx512(dst, src, bytes, ctx->key,
+					ctx->counter);
+		else if (IS_ENABLED(CONFIG_AS_AVX512) &&
+			 chacha20_use_avx512vl &&
 			 len >= CHACHA20_BLOCK_SIZE * 4)
-			chacha20_avx512vl(dst, src, bytes, ctx->key, ctx->counter);
+			chacha20_avx512vl(dst, src, bytes, ctx->key,
+					  ctx->counter);
 		else if (IS_ENABLED(CONFIG_AS_AVX2) && chacha20_use_avx2 &&
 			 len >= CHACHA20_BLOCK_SIZE * 4)
 			chacha20_avx2(dst, src, bytes, ctx->key, ctx->counter);

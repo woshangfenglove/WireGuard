@@ -74,10 +74,13 @@ static void convert_to_base2_64(void *ctx)
 	cy = state->h[1] >> 26; state->h[1] &= 0x3ffffff; state->h[2] += cy;
 	cy = state->h[2] >> 26; state->h[2] &= 0x3ffffff; state->h[3] += cy;
 	cy = state->h[3] >> 26; state->h[3] &= 0x3ffffff; state->h[4] += cy;
-	state->h0 = ((u64)state->h[2] << 52) | ((u64)state->h[1] << 26) | state->h[0];
-	state->h1 = ((u64)state->h[4] << 40) | ((u64)state->h[3] << 14) | (state->h[2] >> 12);
+	state->h0 = ((u64)state->h[2] << 52) | ((u64)state->h[1] << 26) |
+		    state->h[0];
+	state->h1 = ((u64)state->h[4] << 40) | ((u64)state->h[3] << 14) |
+		    (state->h[2] >> 12);
 	state->h2 = state->h[4] >> 24;
-	if (IS_ENABLED(CONFIG_ZINC_ARCH_ARM) && IS_ENABLED(CONFIG_CPU_BIG_ENDIAN)) {
+	if (IS_ENABLED(CONFIG_ZINC_ARCH_ARM) &&
+	    IS_ENABLED(CONFIG_CPU_BIG_ENDIAN)) {
 		state->h0 = rol64(state->h0, 32);
 		state->h1 = rol64(state->h1, 32);
 	}
@@ -134,7 +137,8 @@ static inline bool poly1305_emit_arch(void *ctx, u8 mac[POLY1305_MAC_SIZE],
 	    !simd_use(simd_context)) {
 		convert_to_base2_64(ctx);
 		poly1305_emit_arm(ctx, mac, nonce);
-	} else
+	} else {
 		poly1305_emit_neon(ctx, mac, nonce);
+	}
 	return true;
 }

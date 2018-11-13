@@ -26,7 +26,8 @@ static bool poly1305_use_avx __ro_after_init;
 static bool poly1305_use_avx2 __ro_after_init;
 static bool poly1305_use_avx512 __ro_after_init;
 static bool *const poly1305_nobs[] __initconst = {
-	&poly1305_use_avx, &poly1305_use_avx2, &poly1305_use_avx512 };
+	&poly1305_use_avx, &poly1305_use_avx2, &poly1305_use_avx512
+};
 
 static void __init poly1305_fpu_init(void)
 {
@@ -90,8 +91,10 @@ static void convert_to_base2_64(void *ctx)
 	cy = state->h[1] >> 26; state->h[1] &= 0x3ffffff; state->h[2] += cy;
 	cy = state->h[2] >> 26; state->h[2] &= 0x3ffffff; state->h[3] += cy;
 	cy = state->h[3] >> 26; state->h[3] &= 0x3ffffff; state->h[4] += cy;
-	state->hs[0] = ((u64)state->h[2] << 52) | ((u64)state->h[1] << 26) | state->h[0];
-	state->hs[1] = ((u64)state->h[4] << 40) | ((u64)state->h[3] << 14) | (state->h[2] >> 12);
+	state->hs[0] = ((u64)state->h[2] << 52) | ((u64)state->h[1] << 26) |
+		       state->h[0];
+	state->hs[1] = ((u64)state->h[4] << 40) | ((u64)state->h[3] << 14) |
+		       (state->h[2] >> 12);
 	state->hs[2] = state->h[4] >> 24;
 #define ULT(a, b) ((a ^ ((a ^ b) | ((a - b) ^ b))) >> (sizeof(a) * 8 - 1))
 	cy = (state->hs[2] >> 2) + (state->hs[2] & ~3ULL);
@@ -150,7 +153,8 @@ static inline bool poly1305_emit_arch(void *ctx, u8 mac[POLY1305_MAC_SIZE],
 	    !state->is_base2_26 || !simd_use(simd_context)) {
 		convert_to_base2_64(ctx);
 		poly1305_emit_x86_64(ctx, mac, nonce);
-	} else
+	} else {
 		poly1305_emit_avx(ctx, mac, nonce);
+	}
 	return true;
 }

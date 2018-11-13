@@ -17,33 +17,33 @@
 static struct genl_family genl_family;
 
 static const struct nla_policy device_policy[WGDEVICE_A_MAX + 1] = {
-	[WGDEVICE_A_IFINDEX]		= { .type = NLA_U32 },
-	[WGDEVICE_A_IFNAME]		= { .type = NLA_NUL_STRING, .len = IFNAMSIZ - 1 },
-	[WGDEVICE_A_PRIVATE_KEY]	= { .len = NOISE_PUBLIC_KEY_LEN },
-	[WGDEVICE_A_PUBLIC_KEY]		= { .len = NOISE_PUBLIC_KEY_LEN },
-	[WGDEVICE_A_FLAGS]		= { .type = NLA_U32 },
-	[WGDEVICE_A_LISTEN_PORT]	= { .type = NLA_U16 },
-	[WGDEVICE_A_FWMARK]		= { .type = NLA_U32 },
-	[WGDEVICE_A_PEERS]		= { .type = NLA_NESTED }
+	[WGDEVICE_A_IFINDEX] = { .type = NLA_U32 },
+	[WGDEVICE_A_IFNAME] = { .type = NLA_NUL_STRING, .len = IFNAMSIZ - 1 },
+	[WGDEVICE_A_PRIVATE_KEY] = { .len = NOISE_PUBLIC_KEY_LEN },
+	[WGDEVICE_A_PUBLIC_KEY] = { .len = NOISE_PUBLIC_KEY_LEN },
+	[WGDEVICE_A_FLAGS] = { .type = NLA_U32 },
+	[WGDEVICE_A_LISTEN_PORT] = { .type = NLA_U16 },
+	[WGDEVICE_A_FWMARK] = { .type = NLA_U32 },
+	[WGDEVICE_A_PEERS] = { .type = NLA_NESTED }
 };
 
 static const struct nla_policy peer_policy[WGPEER_A_MAX + 1] = {
-	[WGPEER_A_PUBLIC_KEY]				= { .len = NOISE_PUBLIC_KEY_LEN },
-	[WGPEER_A_PRESHARED_KEY]			= { .len = NOISE_SYMMETRIC_KEY_LEN },
-	[WGPEER_A_FLAGS]				= { .type = NLA_U32 },
-	[WGPEER_A_ENDPOINT]				= { .len = sizeof(struct sockaddr) },
-	[WGPEER_A_PERSISTENT_KEEPALIVE_INTERVAL]	= { .type = NLA_U16 },
-	[WGPEER_A_LAST_HANDSHAKE_TIME]			= { .len = sizeof(struct timespec) },
-	[WGPEER_A_RX_BYTES]				= { .type = NLA_U64 },
-	[WGPEER_A_TX_BYTES]				= { .type = NLA_U64 },
-	[WGPEER_A_ALLOWEDIPS]				= { .type = NLA_NESTED },
-	[WGPEER_A_PROTOCOL_VERSION]			= { .type = NLA_U32 }
+	[WGPEER_A_PUBLIC_KEY] = { .len = NOISE_PUBLIC_KEY_LEN },
+	[WGPEER_A_PRESHARED_KEY] = { .len = NOISE_SYMMETRIC_KEY_LEN },
+	[WGPEER_A_FLAGS] = { .type = NLA_U32 },
+	[WGPEER_A_ENDPOINT] = { .len = sizeof(struct sockaddr) },
+	[WGPEER_A_PERSISTENT_KEEPALIVE_INTERVAL] = { .type = NLA_U16 },
+	[WGPEER_A_LAST_HANDSHAKE_TIME] = { .len = sizeof(struct timespec) },
+	[WGPEER_A_RX_BYTES] = { .type = NLA_U64 },
+	[WGPEER_A_TX_BYTES] = { .type = NLA_U64 },
+	[WGPEER_A_ALLOWEDIPS] = { .type = NLA_NESTED },
+	[WGPEER_A_PROTOCOL_VERSION] = { .type = NLA_U32 }
 };
 
 static const struct nla_policy allowedip_policy[WGALLOWEDIP_A_MAX + 1] = {
-	[WGALLOWEDIP_A_FAMILY]		= { .type = NLA_U16 },
-	[WGALLOWEDIP_A_IPADDR]		= { .len = sizeof(struct in_addr) },
-	[WGALLOWEDIP_A_CIDR_MASK]	= { .type = NLA_U8 }
+	[WGALLOWEDIP_A_FAMILY] = { .type = NLA_U16 },
+	[WGALLOWEDIP_A_IPADDR] = { .len = sizeof(struct in_addr) },
+	[WGALLOWEDIP_A_CIDR_MASK] = { .type = NLA_U8 }
 };
 
 static struct wg_device *lookup_interface(struct nlattr **attrs,
@@ -303,7 +303,7 @@ static int set_port(struct wg_device *wg, u16 port)
 	if (wg->incoming_port == port)
 		return 0;
 	list_for_each_entry(peer, &wg->peer_list, peer_list)
-		wg_socket_clear_peer_endpoint_src(peer);
+	wg_socket_clear_peer_endpoint_src(peer);
 	if (!netif_running(wg->dev)) {
 		wg->incoming_port = port;
 		return 0;
@@ -324,17 +324,19 @@ static int set_allowedip(struct wg_peer *peer, struct nlattr **attrs)
 	cidr = nla_get_u8(attrs[WGALLOWEDIP_A_CIDR_MASK]);
 
 	if (family == AF_INET && cidr <= 32 &&
-	    nla_len(attrs[WGALLOWEDIP_A_IPADDR]) == sizeof(struct in_addr))
+	    nla_len(attrs[WGALLOWEDIP_A_IPADDR]) == sizeof(struct in_addr)) {
 		ret = wg_allowedips_insert_v4(
 			&peer->device->peer_allowedips,
 			nla_data(attrs[WGALLOWEDIP_A_IPADDR]), cidr, peer,
 			&peer->device->device_update_lock);
-	else if (family == AF_INET6 && cidr <= 128 &&
-		 nla_len(attrs[WGALLOWEDIP_A_IPADDR]) == sizeof(struct in6_addr))
+	} else if (family == AF_INET6 && cidr <= 128 &&
+		   nla_len(attrs[WGALLOWEDIP_A_IPADDR]) ==
+		   sizeof(struct in6_addr)) {
 		ret = wg_allowedips_insert_v6(
 			&peer->device->peer_allowedips,
 			nla_data(attrs[WGALLOWEDIP_A_IPADDR]), cidr, peer,
 			&peer->device->device_update_lock);
+	}
 
 	return ret;
 }
@@ -359,10 +361,9 @@ static int set_peer(struct wg_device *wg, struct nlattr **attrs)
 		flags = nla_get_u32(attrs[WGPEER_A_FLAGS]);
 
 	ret = -EPFNOSUPPORT;
-	if (attrs[WGPEER_A_PROTOCOL_VERSION]) {
+	if (attrs[WGPEER_A_PROTOCOL_VERSION])
 		if (nla_get_u32(attrs[WGPEER_A_PROTOCOL_VERSION]) != 1)
 			goto out;
-	}
 
 	peer = wg_pubkey_hashtable_lookup(&wg->peer_hashtable,
 					  nla_data(attrs[WGPEER_A_PUBLIC_KEY]));
@@ -446,13 +447,14 @@ static int set_peer(struct wg_device *wg, struct nlattr **attrs)
 
 	if (attrs[WGPEER_A_PERSISTENT_KEEPALIVE_INTERVAL]) {
 		const u16 persistent_keepalive_interval = nla_get_u16(
-				attrs[WGPEER_A_PERSISTENT_KEEPALIVE_INTERVAL]);
+			attrs[WGPEER_A_PERSISTENT_KEEPALIVE_INTERVAL]);
 		const bool send_keepalive =
 			!peer->persistent_keepalive_interval &&
 			persistent_keepalive_interval &&
 			netif_running(wg->dev);
 
-		peer->persistent_keepalive_interval = persistent_keepalive_interval;
+		peer->persistent_keepalive_interval =
+			persistent_keepalive_interval;
 		if (send_keepalive)
 			wg_packet_send_keepalive(peer);
 	}
@@ -487,24 +489,24 @@ static int wg_set_device(struct sk_buff *skb, struct genl_info *info)
 
 		wg->fwmark = nla_get_u32(info->attrs[WGDEVICE_A_FWMARK]);
 		list_for_each_entry(peer, &wg->peer_list, peer_list)
-			wg_socket_clear_peer_endpoint_src(peer);
+		wg_socket_clear_peer_endpoint_src(peer);
 	}
 
 	if (info->attrs[WGDEVICE_A_LISTEN_PORT]) {
 		ret = set_port(wg,
-			nla_get_u16(info->attrs[WGDEVICE_A_LISTEN_PORT]));
+			       nla_get_u16(info->attrs[WGDEVICE_A_LISTEN_PORT]));
 		if (ret)
 			goto out;
 	}
 
 	if (info->attrs[WGDEVICE_A_FLAGS] &&
 	    nla_get_u32(info->attrs[WGDEVICE_A_FLAGS]) &
-		    WGDEVICE_F_REPLACE_PEERS)
+	    WGDEVICE_F_REPLACE_PEERS)
 		wg_peer_remove_all(wg);
 
 	if (info->attrs[WGDEVICE_A_PRIVATE_KEY] &&
 	    nla_len(info->attrs[WGDEVICE_A_PRIVATE_KEY]) ==
-		    NOISE_PUBLIC_KEY_LEN) {
+	    NOISE_PUBLIC_KEY_LEN) {
 		u8 *private_key = nla_data(info->attrs[WGDEVICE_A_PRIVATE_KEY]);
 		u8 public_key[NOISE_PUBLIC_KEY_LEN];
 		struct wg_peer *peer, *temp;
@@ -585,11 +587,11 @@ struct genl_ops genl_ops[] = {
 
 static struct genl_family genl_family
 #ifndef COMPAT_CANNOT_USE_GENL_NOPS
-__ro_after_init = {
+			  __ro_after_init = {
 	.ops = genl_ops,
 	.n_ops = ARRAY_SIZE(genl_ops),
 #else
-= {
+	= {
 #endif
 	.name = WG_GENL_NAME,
 	.version = WG_GENL_VERSION,

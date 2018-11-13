@@ -30,13 +30,16 @@ __attribute__((noreturn)) static void poweroff(void)
 	fflush(stderr);
 	reboot(RB_AUTOBOOT);
 	sleep(30);
-	fprintf(stderr, "\x1b[37m\x1b[41m\x1b[1mFailed to power off!!!\x1b[0m\n");
+	fprintf(stderr,
+		"\x1b[37m\x1b[41m\x1b[1mFailed to power off!!!\x1b[0m\n");
 	exit(1);
 }
 
 static void panic(const char *what)
 {
-	fprintf(stderr, "\n\n\x1b[37m\x1b[41m\x1b[1mSOMETHING WENT HORRIBLY WRONG\x1b[0m\n\n    \x1b[31m\x1b[1m%s: %s\x1b[0m\n\n\x1b[37m\x1b[44m\x1b[1mPower off...\x1b[0m\n\n", what, strerror(errno));
+	fprintf(stderr,
+		"\n\n\x1b[37m\x1b[41m\x1b[1mSOMETHING WENT HORRIBLY WRONG\x1b[0m\n\n    \x1b[31m\x1b[1m%s: %s\x1b[0m\n\n\x1b[37m\x1b[44m\x1b[1mPower off...\x1b[0m\n\n", what, strerror(
+			errno));
 	poweroff();
 }
 
@@ -50,13 +53,18 @@ static void print_banner(void)
 	if (uname(&utsname) < 0)
 		panic("uname");
 
-	len = strlen("    WireGuard Test Suite on       ") + strlen(utsname.sysname) + strlen(utsname.release) + strlen(utsname.machine);
-	printf("\x1b[45m\x1b[33m\x1b[1m%*.s\x1b[0m\n\x1b[45m\x1b[33m\x1b[1m    WireGuard Test Suite on %s %s %s    \x1b[0m\n\x1b[45m\x1b[33m\x1b[1m%*.s\x1b[0m\n\n", len, "", utsname.sysname, utsname.release, utsname.machine, len, "");
+	len = strlen("    WireGuard Test Suite on       ") + strlen(
+		utsname.sysname) + strlen(utsname.release) + strlen(
+		utsname.machine);
+	printf(
+		"\x1b[45m\x1b[33m\x1b[1m%*.s\x1b[0m\n\x1b[45m\x1b[33m\x1b[1m    WireGuard Test Suite on %s %s %s    \x1b[0m\n\x1b[45m\x1b[33m\x1b[1m%*.s\x1b[0m\n\n", len, "", utsname.sysname, utsname.release, utsname.machine, len,
+		"");
 }
 
 static void seed_rng(void)
 {
 	int fd;
+
 	struct {
 		int entropy_count;
 		int buffer_size;
@@ -64,7 +72,8 @@ static void seed_rng(void)
 	} entropy = {
 		.entropy_count = sizeof(entropy.buffer) * 8,
 		.buffer_size = sizeof(entropy.buffer),
-		.buffer = "Adding real entropy is not actually important for these tests. Don't try this at home, kids!"
+		.buffer =
+			"Adding real entropy is not actually important for these tests. Don't try this at home, kids!"
 	};
 
 	if (mknod("/dev/urandom", S_IFCHR | 0644, makedev(1, 9)))
@@ -72,10 +81,9 @@ static void seed_rng(void)
 	fd = open("/dev/urandom", O_WRONLY);
 	if (fd < 0)
 		panic("open(urandom)");
-	for (int i = 0; i < 256; ++i) {
+	for (int i = 0; i < 256; ++i)
 		if (ioctl(fd, RNDADDENTROPY, &entropy) < 0)
 			panic("ioctl(urandom)");
-	}
 	close(fd);
 }
 
@@ -109,6 +117,7 @@ static void mount_filesystems(void)
 static void enable_logging(void)
 {
 	int fd;
+
 	pretty_message("[+] Enabling logging...");
 	fd = open("/proc/sys/kernel/printk", O_WRONLY);
 	if (fd >= 0) {
@@ -135,6 +144,7 @@ static void kmod_selftests(void)
 	FILE *file;
 	char line[2048], *start, *pass;
 	bool success = true;
+
 	pretty_message("[+] Module self-tests:");
 	file = fopen("/proc/kmsg", "r");
 	if (!file)
@@ -153,8 +163,9 @@ static void kmod_selftests(void)
 		if (!pass || pass[6] != '\0') {
 			success = false;
 			printf(" \x1b[31m*  %s\x1b[0m\n", start);
-		} else
+		} else {
 			printf(" \x1b[32m*  %s\x1b[0m\n", start);
+		}
 	}
 	fclose(file);
 	if (!success) {
@@ -171,9 +182,9 @@ static void launch_tests(void)
 
 	pretty_message("[+] Launching tests...");
 	pid = fork();
-	if (pid == -1)
+	if (pid == -1) {
 		panic("fork");
-	else if (pid == 0) {
+	} else if (pid == 0) {
 		execl("/init.sh", "init", NULL);
 		panic("exec");
 	}
@@ -187,7 +198,8 @@ static void launch_tests(void)
 		if (read(fd, cmdline, sizeof(cmdline) - 1) <= 0)
 			panic("read(/proc/cmdline)");
 		cmdline[sizeof(cmdline) - 1] = '\0';
-		for (success_dev = strtok(cmdline, " \n"); success_dev; success_dev = strtok(NULL, " \n")) {
+		for (success_dev = strtok(cmdline, " \n"); success_dev;
+		     success_dev = strtok(NULL, " \n")) {
 			if (strncmp(success_dev, "wg.success=", 11))
 				continue;
 			memcpy(success_dev + 11 - 5, "/dev/", 5);
@@ -203,8 +215,9 @@ static void launch_tests(void)
 		if (write(fd, "success\n", 8) != 8)
 			panic("write(success_dev)");
 		close(fd);
-	} else
+	} else {
 		puts("\x1b[31m\x1b[1m[-] Tests failed! :-(\x1b[0m");
+	}
 }
 
 static void ensure_console(void)

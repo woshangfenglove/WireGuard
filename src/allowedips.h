@@ -36,10 +36,10 @@ void wg_allowedips_remove_by_peer(struct allowedips *table,
 				  struct wg_peer *peer, struct mutex *lock);
 int wg_allowedips_walk_by_peer(struct allowedips *table,
 			       struct allowedips_cursor *cursor,
-			       struct wg_peer *peer,
-			       int (*func)(void *ctx, const u8 *ip, u8 cidr,
-					   int family),
-			       void *ctx, struct mutex *lock);
+			       struct wg_peer *peer, int (*func)(void *ctx,
+								 const u8 *ip,
+								 u8 cidr,
+								 int family), void *ctx, struct mutex *lock);
 
 /* These return a strong reference to a peer: */
 struct wg_peer *wg_allowedips_lookup_dst(struct allowedips *table,

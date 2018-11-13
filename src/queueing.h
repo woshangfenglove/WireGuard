@@ -70,12 +70,12 @@ static inline __be16 wg_skb_examine_untrusted_ip_hdr(struct sk_buff *skb)
 {
 	if (skb_network_header(skb) >= skb->head &&
 	    (skb_network_header(skb) + sizeof(struct iphdr)) <=
-		    skb_tail_pointer(skb) &&
+	    skb_tail_pointer(skb) &&
 	    ip_hdr(skb)->version == 4)
 		return htons(ETH_P_IP);
 	if (skb_network_header(skb) >= skb->head &&
 	    (skb_network_header(skb) + sizeof(struct ipv6hdr)) <=
-		    skb_tail_pointer(skb) &&
+	    skb_tail_pointer(skb) &&
 	    ipv6_hdr(skb)->version == 6)
 		return htons(ETH_P_IPV6);
 	return 0;
@@ -88,7 +88,7 @@ static inline void wg_reset_packet(struct sk_buff *skb)
 	skb_scrub_packet(skb, true);
 	memset(&skb->headers_start, 0,
 	       offsetof(struct sk_buff, headers_end) -
-		       offsetof(struct sk_buff, headers_start));
+	       offsetof(struct sk_buff, headers_start));
 	skb->pfmemalloc = pfmemalloc;
 	skb->queue_mapping = 0;
 	skb->nohdr = 0;

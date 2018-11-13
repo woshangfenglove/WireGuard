@@ -89,8 +89,7 @@ static inline bool hchacha20_arch(u32 derived_key[CHACHA20_KEY_WORDS],
 			    get_unaligned_le32(nonce + 0),
 			    get_unaligned_le32(nonce + 4),
 			    get_unaligned_le32(nonce + 8),
-			    get_unaligned_le32(nonce + 12)
-			  };
+			    get_unaligned_le32(nonce + 12) };
 		hchacha20_arm(x, derived_key);
 		return true;
 	}

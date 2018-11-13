@@ -17,19 +17,19 @@
 #endif
 
 #if defined(__LINUX_ARM_ARCH__) && LINUX_VERSION_CODE < KERNEL_VERSION(3, 17, 0)
-	.irp	c,,eq,ne,cs,cc,mi,pl,vs,vc,hi,ls,ge,lt,gt,le,hs,lo
-	.macro	ret\c, reg
+.irp c, , eq, ne, cs, cc, mi, pl, vs, vc, hi, ls, ge, lt, gt, le, hs, lo
+.macro ret \ c, reg
 #if __LINUX_ARM_ARCH__ < 6
-	mov\c	pc, \reg
+mov \ c pc, \ reg
 #else
-	.ifeqs	"\reg", "lr"
-	bx\c	\reg
-	.else
-	mov\c	pc, \reg
+.ifeqs  "\reg", "lr"
+bx \ c    \ reg
+.else
+	mov \ c pc, \ reg
 	.endif
 #endif
-	.endm
-	.endr
+.endm
+.endr
 #endif
 
 #if defined(__LINUX_ARM_ARCH__) && LINUX_VERSION_CODE < KERNEL_VERSION(3, 15, 0)

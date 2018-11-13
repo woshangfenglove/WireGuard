@@ -15,7 +15,8 @@ static const struct {
 	[PACKETS_BURSTABLE] = { false, 0 },
 	[PACKETS_BURSTABLE + 1] = { true, MSEC_PER_SEC / PACKETS_PER_SECOND },
 	[PACKETS_BURSTABLE + 2] = { false, 0 },
-	[PACKETS_BURSTABLE + 3] = { true, (MSEC_PER_SEC / PACKETS_PER_SECOND) * 2 },
+	[PACKETS_BURSTABLE +
+	 3] = { true, (MSEC_PER_SEC / PACKETS_PER_SECOND) * 2 },
 	[PACKETS_BURSTABLE + 4] = { true, 0 },
 	[PACKETS_BURSTABLE + 5] = { false, 0 }
 };
@@ -49,7 +50,7 @@ static __init int timings_test(struct sk_buff *skb4, struct iphdr *hdr4,
 					   maximum_jiffies_at_index(i)))
 			return -ETIMEDOUT;
 		if (wg_ratelimiter_allow(skb4, &init_net) !=
-					expected_results[i].result)
+		    expected_results[i].result)
 			return -EXFULL;
 		++(*test);
 
@@ -70,7 +71,7 @@ static __init int timings_test(struct sk_buff *skb4, struct iphdr *hdr4,
 					   maximum_jiffies_at_index(i)))
 			return -ETIMEDOUT;
 		if (wg_ratelimiter_allow(skb6, &init_net) !=
-					expected_results[i].result)
+		    expected_results[i].result)
 			return -EXFULL;
 		++(*test);
 

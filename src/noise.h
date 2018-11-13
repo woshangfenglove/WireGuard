@@ -96,10 +96,9 @@ struct wg_device;
 
 void wg_noise_init(void);
 bool wg_noise_handshake_init(struct noise_handshake *handshake,
-			   struct noise_static_identity *static_identity,
-			   const u8 peer_public_key[NOISE_PUBLIC_KEY_LEN],
-			   const u8 peer_preshared_key[NOISE_SYMMETRIC_KEY_LEN],
-			   struct wg_peer *peer);
+			     struct noise_static_identity *static_identity,
+			     const u8 peer_public_key[NOISE_PUBLIC_KEY_LEN],
+			     const u8 peer_preshared_key[NOISE_SYMMETRIC_KEY_LEN], struct wg_peer *peer);
 void wg_noise_handshake_clear(struct noise_handshake *handshake);
 void wg_noise_keypair_put(struct noise_keypair *keypair, bool unreference_now);
 struct noise_keypair *wg_noise_keypair_get(struct noise_keypair *keypair);

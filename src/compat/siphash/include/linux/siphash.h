@@ -89,8 +89,7 @@ typedef struct {
 	unsigned long key[2];
 } hsiphash_key_t;
 
-u32 __hsiphash_aligned(const void *data, size_t len,
-		       const hsiphash_key_t *key);
+u32 __hsiphash_aligned(const void *data, size_t len, const hsiphash_key_t *key);
 #ifndef CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS
 u32 __hsiphash_unaligned(const void *data, size_t len,
 			 const hsiphash_key_t *key);

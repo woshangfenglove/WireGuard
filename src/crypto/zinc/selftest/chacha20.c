@@ -2499,18 +2499,100 @@ static const struct chacha20_testvec chacha20_testvecs[] __initconst = {
 	{ input74, output74, key74, nonce74, sizeof(input74) }
 };
 
-static const struct hchacha20_testvec hchacha20_testvecs[] __initconst = {{
-	.key	= { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-		    0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
-		    0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
-		    0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f },
-	.nonce	= { 0x00, 0x00, 0x00, 0x09, 0x00, 0x00, 0x00, 0x4a,
-		    0x00, 0x00, 0x00, 0x00, 0x31, 0x41, 0x59, 0x27 },
-	.output	= { 0x82, 0x41, 0x3b, 0x42, 0x27, 0xb2, 0x7b, 0xfe,
-		    0xd3, 0x0e, 0x42, 0x50, 0x8a, 0x87, 0x7d, 0x73,
-		    0xa0, 0xf9, 0xe4, 0xd5, 0x8a, 0x74, 0xa8, 0x53,
-		    0xc1, 0x2e, 0xc4, 0x13, 0x26, 0xd3, 0xec, 0xdc }
-}};
+static const struct hchacha20_testvec hchacha20_testvecs[] __initconst = { {
+										   .
+										   key
+											   =
+											   {
+											   0x00,
+											   0x01,
+											   0x02,
+											   0x03,
+											   0x04,
+											   0x05,
+											   0x06,
+											   0x07,
+											   0x08,
+											   0x09,
+											   0x0a,
+											   0x0b,
+											   0x0c,
+											   0x0d,
+											   0x0e,
+											   0x0f,
+											   0x10,
+											   0x11,
+											   0x12,
+											   0x13,
+											   0x14,
+											   0x15,
+											   0x16,
+											   0x17,
+											   0x18,
+											   0x19,
+											   0x1a,
+											   0x1b,
+											   0x1c,
+											   0x1d,
+											   0x1e,
+											   0x1f },
+										   .
+										   nonce
+											   =
+											   {
+											   0x00,
+											   0x00,
+											   0x00,
+											   0x09,
+											   0x00,
+											   0x00,
+											   0x00,
+											   0x4a,
+											   0x00,
+											   0x00,
+											   0x00,
+											   0x00,
+											   0x31,
+											   0x41,
+											   0x59,
+											   0x27 },
+										   .
+										   output
+											   =
+											   {
+											   0x82,
+											   0x41,
+											   0x3b,
+											   0x42,
+											   0x27,
+											   0xb2,
+											   0x7b,
+											   0xfe,
+											   0xd3,
+											   0x0e,
+											   0x42,
+											   0x50,
+											   0x8a,
+											   0x87,
+											   0x7d,
+											   0x73,
+											   0xa0,
+											   0xf9,
+											   0xe4,
+											   0xd5,
+											   0x8a,
+											   0x74,
+											   0xa8,
+											   0x53,
+											   0xc1,
+											   0x2e,
+											   0xc4,
+											   0x13,
+											   0x26,
+											   0xd3,
+											   0xec,
+											   0xdc }
+									   } };
 
 static bool __init chacha20_selftest(void)
 {
@@ -2522,7 +2604,7 @@ static bool __init chacha20_selftest(void)
 	u32 derived_key[CHACHA20_KEY_WORDS];
 	u8 *offset_input = NULL, *computed_output = NULL, *massive_input = NULL;
 	u8 offset_key[CHACHA20_KEY_SIZE + 1]
-			__aligned(__alignof__(unsigned long));
+	__aligned(__alignof__(unsigned long));
 	struct chacha20_ctx state;
 	bool success = true;
 	simd_context_t simd_context;
@@ -2553,8 +2635,9 @@ static bool __init chacha20_selftest(void)
 		for (k = chacha20_testvecs[i].ilen;
 		     k < MAXIMUM_TEST_BUFFER_LEN + 1; ++k) {
 			if (computed_output[k]) {
-				pr_err("chacha20 self-test %zu (zero check): FAIL\n",
-				       i + 1);
+				pr_err(
+					"chacha20 self-test %zu (zero check): FAIL\n",
+					i + 1);
 				success = false;
 				break;
 			}
@@ -2567,7 +2650,8 @@ static bool __init chacha20_selftest(void)
 		       chacha20_testvecs[i].ilen);
 		memcpy(offset_key + 1, chacha20_testvecs[i].key,
 		       CHACHA20_KEY_SIZE);
-		chacha20_init(&state, offset_key + 1, chacha20_testvecs[i].nonce);
+		chacha20_init(&state, offset_key + 1,
+			      chacha20_testvecs[i].nonce);
 		chacha20(&state, computed_output + 1, offset_input + 1,
 			 chacha20_testvecs[i].ilen, &simd_context);
 		if (memcmp(computed_output + 1, chacha20_testvecs[i].output,
@@ -2577,15 +2661,17 @@ static bool __init chacha20_selftest(void)
 			success = false;
 		}
 		if (computed_output[0]) {
-			pr_err("chacha20 self-test %zu (unaligned, zero check): FAIL\n",
-			       i + 1);
+			pr_err(
+				"chacha20 self-test %zu (unaligned, zero check): FAIL\n",
+				i + 1);
 			success = false;
 		}
 		for (k = chacha20_testvecs[i].ilen + 1;
 		     k < MAXIMUM_TEST_BUFFER_LEN + 1; ++k) {
 			if (computed_output[k]) {
-				pr_err("chacha20 self-test %zu (unaligned, zero check): FAIL\n",
-				       i + 1);
+				pr_err(
+					"chacha20 self-test %zu (unaligned, zero check): FAIL\n",
+					i + 1);
 				success = false;
 				break;
 			}
@@ -2613,8 +2699,9 @@ static bool __init chacha20_selftest(void)
 		for (k = chacha20_testvecs[i].ilen;
 		     k < MAXIMUM_TEST_BUFFER_LEN + 1; ++k) {
 			if (computed_output[k]) {
-				pr_err("chacha20 self-test %zu (chunked, zero check): FAIL\n",
-				       i + 1);
+				pr_err(
+					"chacha20 self-test %zu (chunked, zero check): FAIL\n",
+					i + 1);
 				success = false;
 				break;
 			}
@@ -2637,14 +2724,16 @@ next_test:
 			if (memcmp(computed_output + j,
 				   chacha20_testvecs[i].output,
 				   chacha20_testvecs[i].ilen)) {
-				pr_err("chacha20 self-test %zu (unaligned, slide %zu): FAIL\n",
-				       i + 1, j);
+				pr_err(
+					"chacha20 self-test %zu (unaligned, slide %zu): FAIL\n",
+					i + 1, j);
 				success = false;
 			}
 			for (k = j; k < j; ++k) {
 				if (computed_output[k]) {
-					pr_err("chacha20 self-test %zu (unaligned, slide %zu, zero check): FAIL\n",
-					       i + 1, j);
+					pr_err(
+						"chacha20 self-test %zu (unaligned, slide %zu, zero check): FAIL\n",
+						i + 1, j);
 					success = false;
 					break;
 				}
@@ -2652,8 +2741,9 @@ next_test:
 			for (k = chacha20_testvecs[i].ilen + j;
 			     k < MAXIMUM_TEST_BUFFER_LEN + 1; ++k) {
 				if (computed_output[k]) {
-					pr_err("chacha20 self-test %zu (unaligned, slide %zu, zero check): FAIL\n",
-					       i + 1, j);
+					pr_err(
+						"chacha20 self-test %zu (unaligned, slide %zu, zero check): FAIL\n",
+						i + 1, j);
 					success = false;
 					break;
 				}

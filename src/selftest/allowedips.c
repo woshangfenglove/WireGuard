@@ -32,7 +32,7 @@ static __init void print_node(struct allowedips_node *node, u8 bits)
 {
 	char *fmt_connection = KERN_DEBUG "\t\"%p/%d\" -> \"%p/%d\";\n";
 	char *fmt_declaration = KERN_DEBUG
-		"\t\"%p/%d\"[style=%s, color=\"#%06x\"];\n";
+				"\t\"%p/%d\"[style=%s, color=\"#%06x\"];\n";
 	char *style = "dotted";
 	u8 ip1[16], ip2[16];
 	u32 color = 0;
@@ -40,11 +40,11 @@ static __init void print_node(struct allowedips_node *node, u8 bits)
 	if (bits == 32) {
 		fmt_connection = KERN_DEBUG "\t\"%pI4/%d\" -> \"%pI4/%d\";\n";
 		fmt_declaration = KERN_DEBUG
-			"\t\"%pI4/%d\"[style=%s, color=\"#%06x\"];\n";
+				  "\t\"%pI4/%d\"[style=%s, color=\"#%06x\"];\n";
 	} else if (bits == 128) {
 		fmt_connection = KERN_DEBUG "\t\"%pI6/%d\" -> \"%pI6/%d\";\n";
 		fmt_declaration = KERN_DEBUG
-			"\t\"%pI6/%d\"[style=%s, color=\"#%06x\"];\n";
+				  "\t\"%pI6/%d\"[style=%s, color=\"#%06x\"];\n";
 	}
 	if (node->peer) {
 		hsiphash_key_t key = { { 0 } };
@@ -59,16 +59,18 @@ static __init void print_node(struct allowedips_node *node, u8 bits)
 	printk(fmt_declaration, ip1, node->cidr, style, color);
 	if (node->bit[0]) {
 		swap_endian_and_apply_cidr(ip2,
-				rcu_dereference_raw(node->bit[0])->bits, bits,
-				node->cidr);
+					   rcu_dereference_raw(
+						   node->bit[0])->bits, bits,
+					   node->cidr);
 		printk(fmt_connection, ip1, node->cidr, ip2,
 		       rcu_dereference_raw(node->bit[0])->cidr);
 		print_node(rcu_dereference_raw(node->bit[0]), bits);
 	}
 	if (node->bit[1]) {
 		swap_endian_and_apply_cidr(ip2,
-				rcu_dereference_raw(node->bit[1])->bits,
-				bits, node->cidr);
+					   rcu_dereference_raw(
+						   node->bit[1])->bits,
+					   bits, node->cidr);
 		printk(fmt_connection, ip1, node->cidr, ip2,
 		       rcu_dereference_raw(node->bit[1])->cidr);
 		print_node(rcu_dereference_raw(node->bit[1]), bits);
@@ -160,11 +162,11 @@ horrible_match_v6(const struct horrible_allowedips_node *node,
 		  struct in6_addr *ip)
 {
 	return (ip->in6_u.u6_addr32[0] & node->mask.ip6[0]) ==
-		       node->ip.ip6[0] &&
+	       node->ip.ip6[0] &&
 	       (ip->in6_u.u6_addr32[1] & node->mask.ip6[1]) ==
-		       node->ip.ip6[1] &&
+	       node->ip.ip6[1] &&
 	       (ip->in6_u.u6_addr32[2] & node->mask.ip6[2]) ==
-		       node->ip.ip6[2] &&
+	       node->ip.ip6[2] &&
 	       (ip->in6_u.u6_addr32[3] & node->mask.ip6[3]) == node->ip.ip6[3];
 }
 
@@ -275,6 +277,7 @@ static __init bool randomized_test(void)
 	u8 ip[16], mutate_mask[16], mutated[16];
 	struct wg_peer **peers, *peer;
 	struct horrible_allowedips h;
+
 	DEFINE_MUTEX(mutex);
 	struct allowedips t;
 	bool ret = false;
@@ -337,8 +340,11 @@ static __init bool randomized_test(void)
 				goto free;
 			}
 			if (horrible_allowedips_insert_v4(&h,
-				(struct in_addr *)mutated, cidr, peer)) {
-				pr_err("allowedips random self-test malloc: FAIL\n");
+							  (struct in_addr *)
+							  mutated, cidr,
+							  peer)) {
+				pr_err(
+					"allowedips random self-test malloc: FAIL\n");
 				goto free;
 			}
 		}
@@ -377,13 +383,15 @@ static __init bool randomized_test(void)
 			if (wg_allowedips_insert_v6(&t,
 						    (struct in6_addr *)mutated,
 						    cidr, peer, &mutex) < 0) {
-				pr_err("allowedips random self-test malloc: FAIL\n");
+				pr_err(
+					"allowedips random self-test malloc: FAIL\n");
 				goto free;
 			}
 			if (horrible_allowedips_insert_v6(
 				    &h, (struct in6_addr *)mutated, cidr,
 				    peer)) {
-				pr_err("allowedips random self-test malloc: FAIL\n");
+				pr_err(
+					"allowedips random self-test malloc: FAIL\n");
 				goto free;
 			}
 		}
@@ -420,10 +428,9 @@ free:
 	wg_allowedips_free(&t, &mutex);
 	mutex_unlock(&mutex);
 	horrible_allowedips_free(&h);
-	if (peers) {
+	if (peers)
 		for (i = 0; i < NUM_PEERS; ++i)
 			kfree(peers[i]);
-	}
 	kfree(peers);
 	return ret;
 }
@@ -497,8 +504,8 @@ static __init struct wg_peer *init_peer(void)
 }
 
 #define insert(version, mem, ipa, ipb, ipc, ipd, cidr)                       \
-	wg_allowedips_insert_v##version(&t, ip##version(ipa, ipb, ipc, ipd), \
-					cidr, mem, &mutex)
+	wg_allowedips_insert_v ## version(&t, ip ## version(ipa, ipb, ipc, ipd), \
+					  cidr, mem, &mutex)
 
 #define maybe_fail() do {                                               \
 		++i;                                                    \
@@ -506,24 +513,24 @@ static __init struct wg_peer *init_peer(void)
 			pr_info("allowedips self-test %zu: FAIL\n", i); \
 			success = false;                                \
 		}                                                       \
-	} while (0)
+} while (0)
 
 #define test(version, mem, ipa, ipb, ipc, ipd) do {                          \
-		bool _s = lookup(t.root##version, (version) == 4 ? 32 : 128, \
-				 ip##version(ipa, ipb, ipc, ipd)) == (mem);  \
+		bool _s = lookup(t.root ## version, (version) == 4 ? 32 : 128, \
+				 ip ## version(ipa, ipb, ipc, ipd)) == (mem);  \
 		maybe_fail();                                                \
-	} while (0)
+} while (0)
 
 #define test_negative(version, mem, ipa, ipb, ipc, ipd) do {                 \
-		bool _s = lookup(t.root##version, (version) == 4 ? 32 : 128, \
-				 ip##version(ipa, ipb, ipc, ipd)) != (mem);  \
+		bool _s = lookup(t.root ## version, (version) == 4 ? 32 : 128, \
+				 ip ## version(ipa, ipb, ipc, ipd)) != (mem);  \
 		maybe_fail();                                                \
-	} while (0)
+} while (0)
 
 #define test_boolean(cond) do {   \
 		bool _s = (cond); \
 		maybe_fail();     \
-	} while (0)
+} while (0)
 
 bool __init wg_allowedips_selftest(void)
 {
@@ -534,6 +541,7 @@ bool __init wg_allowedips_selftest(void)
 	struct walk_ctx wctx = { 0 };
 	bool success = false;
 	struct allowedips t;
+
 	DEFINE_MUTEX(mutex);
 	struct in6_addr ip;
 	size_t i = 0;

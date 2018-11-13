@@ -24,23 +24,27 @@ int pubkey_main(int argc, char *argv[])
 
 	if (fread(base64, 1, sizeof(base64) - 1, stdin) != sizeof(base64) - 1) {
 		errno = EINVAL;
-		fprintf(stderr, "%s: Key is not the correct length or format\n", PROG_NAME);
+		fprintf(stderr, "%s: Key is not the correct length or format\n",
+			PROG_NAME);
 		return 1;
 	}
 	base64[WG_KEY_LEN_BASE64 - 1] = '\0';
 
 	for (;;) {
 		trailing_char = getc(stdin);
-		if (!trailing_char || isspace(trailing_char) || isblank(trailing_char))
+		if (!trailing_char || isspace(trailing_char) ||
+		    isblank(trailing_char))
 			continue;
 		if (trailing_char == EOF)
 			break;
-		fprintf(stderr, "%s: Trailing characters found after key\n", PROG_NAME);
+		fprintf(stderr, "%s: Trailing characters found after key\n",
+			PROG_NAME);
 		return 1;
 	}
 
 	if (!key_from_base64(key, base64)) {
-		fprintf(stderr, "%s: Key is not the correct length or format\n", PROG_NAME);
+		fprintf(stderr, "%s: Key is not the correct length or format\n",
+			PROG_NAME);
 		return 1;
 	}
 	curve25519_generate_public(key, key);

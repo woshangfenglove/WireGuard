@@ -105,8 +105,9 @@ bool wg_ratelimiter_allow(struct sk_buff *skb, struct net *net)
 				   (table_size - 1)];
 	}
 #endif
-	else
+	else {
 		return false;
+	}
 	rcu_read_lock();
 	hlist_for_each_entry_rcu(entry, bucket, hash) {
 		if (entry->net == net && entry->ip == ip) {
@@ -121,7 +122,7 @@ bool wg_ratelimiter_allow(struct sk_buff *skb, struct net *net)
 			now = ktime_get_boot_fast_ns();
 			tokens = min_t(u64, TOKEN_MAX,
 				       entry->tokens + now -
-					       entry->last_time_ns);
+				       entry->last_time_ns);
 			entry->last_time_ns = now;
 			ret = tokens >= PACKET_COST;
 			entry->tokens = ret ? tokens - PACKET_COST : tokens;
@@ -171,9 +172,9 @@ int wg_ratelimiter_init(void)
 	 * dependent on RAM. This calculation here comes from there.
 	 */
 	table_size = (totalram_pages > (1U << 30) / PAGE_SIZE) ? 8192 :
-		max_t(unsigned long, 16, roundup_pow_of_two(
-			(totalram_pages << PAGE_SHIFT) /
-			(1U << 14) / sizeof(struct hlist_head)));
+		     max_t(unsigned long, 16, roundup_pow_of_two(
+				   (totalram_pages << PAGE_SHIFT) /
+				   (1U << 14) / sizeof(struct hlist_head)));
 	max_entries = table_size * 8;
 
 	table_v4 = kvzalloc(table_size * sizeof(*table_v4), GFP_KERNEL);

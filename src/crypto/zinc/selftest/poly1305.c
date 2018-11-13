@@ -1077,8 +1077,9 @@ static bool __init poly1305_selftest(void)
 			poly1305_final(&poly1305, out, &simd_context);
 			if (memcmp(out, poly1305_testvecs[i].output,
 				   POLY1305_MAC_SIZE)) {
-				pr_err("poly1305 self-test %zu (split %zu): FAIL\n",
-				       i + 1, j);
+				pr_err(
+					"poly1305 self-test %zu (split %zu): FAIL\n",
+					i + 1, j);
 				success = false;
 			}
 
@@ -1094,8 +1095,9 @@ static bool __init poly1305_selftest(void)
 			poly1305_final(&poly1305, out, &simd_context);
 			if (memcmp(out, poly1305_testvecs[i].output,
 				   POLY1305_MAC_SIZE)) {
-				pr_err("poly1305 self-test %zu (split %zu, mixed simd): FAIL\n",
-				       i + 1, j);
+				pr_err(
+					"poly1305 self-test %zu (split %zu, mixed simd): FAIL\n",
+					i + 1, j);
 				success = false;
 			}
 			simd_relax(&simd_context);

@@ -58,7 +58,7 @@ struct wg_peer *wg_peer_create(struct wg_device *wg,
 	skb_queue_head_init(&peer->staged_packet_queue);
 	atomic64_set(&peer->last_sent_handshake,
 		     ktime_get_boot_fast_ns() -
-			     (u64)(REKEY_TIMEOUT + 1) * NSEC_PER_SEC);
+		     (u64)(REKEY_TIMEOUT + 1) * NSEC_PER_SEC);
 	set_bit(NAPI_STATE_NO_BUSY_POLL, &peer->napi.state);
 	netif_napi_add(wg->dev, &peer->napi, wg_packet_rx_poll,
 		       NAPI_POLL_WEIGHT);
@@ -80,8 +80,9 @@ err_1:
 
 struct wg_peer *wg_peer_get_maybe_zero(struct wg_peer *peer)
 {
-	RCU_LOCKDEP_WARN(!rcu_read_lock_bh_held(),
-			 "Taking peer reference without holding the RCU read lock");
+	RCU_LOCKDEP_WARN(
+		!rcu_read_lock_bh_held(),
+		"Taking peer reference without holding the RCU read lock");
 	if (unlikely(!peer || !kref_get_unless_zero(&peer->refcount)))
 		return NULL;
 	return peer;
@@ -211,5 +212,5 @@ void wg_peer_remove_all(struct wg_device *wg)
 
 	lockdep_assert_held(&wg->device_update_lock);
 	list_for_each_entry_safe(peer, temp, &wg->peer_list, peer_list)
-		wg_peer_remove(peer);
+	wg_peer_remove(peer);
 }

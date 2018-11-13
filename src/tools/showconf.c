@@ -28,7 +28,8 @@ int showconf_main(int argc, char *argv[])
 	int ret = 1;
 
 	if (argc != 2) {
-		fprintf(stderr, "Usage: %s %s <interface>\n", PROG_NAME, argv[0]);
+		fprintf(stderr, "Usage: %s %s <interface>\n", PROG_NAME,
+			argv[0]);
 		return 1;
 	}
 
@@ -58,13 +59,16 @@ int showconf_main(int argc, char *argv[])
 			printf("AllowedIPs = ");
 		for_each_wgallowedip(peer, allowedip) {
 			if (allowedip->family == AF_INET) {
-				if (!inet_ntop(AF_INET, &allowedip->ip4, ip, INET6_ADDRSTRLEN))
+				if (!inet_ntop(AF_INET, &allowedip->ip4, ip,
+					       INET6_ADDRSTRLEN))
 					continue;
 			} else if (allowedip->family == AF_INET6) {
-				if (!inet_ntop(AF_INET6, &allowedip->ip6, ip, INET6_ADDRSTRLEN))
+				if (!inet_ntop(AF_INET6, &allowedip->ip6, ip,
+					       INET6_ADDRSTRLEN))
 					continue;
-			} else
+			} else {
 				continue;
+			}
 			printf("%s/%d", ip, allowedip->cidr);
 			if (allowedip->next_allowedip)
 				printf(", ");
@@ -72,7 +76,8 @@ int showconf_main(int argc, char *argv[])
 		if (peer->first_allowedip)
 			printf("\n");
 
-		if (peer->endpoint.addr.sa_family == AF_INET || peer->endpoint.addr.sa_family == AF_INET6) {
+		if (peer->endpoint.addr.sa_family == AF_INET ||
+		    peer->endpoint.addr.sa_family == AF_INET6) {
 			char host[4096 + 1];
 			char service[512 + 1];
 			socklen_t addr_len = 0;
@@ -81,16 +86,23 @@ int showconf_main(int argc, char *argv[])
 				addr_len = sizeof(struct sockaddr_in);
 			else if (peer->endpoint.addr.sa_family == AF_INET6)
 				addr_len = sizeof(struct sockaddr_in6);
-			if (!getnameinfo(&peer->endpoint.addr, addr_len, host, sizeof(host), service, sizeof(service), NI_DGRAM | NI_NUMERICSERV | NI_NUMERICHOST)) {
-				if (peer->endpoint.addr.sa_family == AF_INET6 && strchr(host, ':'))
-					printf("Endpoint = [%s]:%s\n", host, service);
+			if (!getnameinfo(&peer->endpoint.addr, addr_len, host,
+					 sizeof(host), service, sizeof(service),
+					 NI_DGRAM | NI_NUMERICSERV |
+					 NI_NUMERICHOST)) {
+				if (peer->endpoint.addr.sa_family == AF_INET6 &&
+				    strchr(host, ':'))
+					printf("Endpoint = [%s]:%s\n", host,
+					       service);
 				else
-					printf("Endpoint = %s:%s\n", host, service);
+					printf("Endpoint = %s:%s\n", host,
+					       service);
 			}
 		}
 
 		if (peer->persistent_keepalive_interval)
-			printf("PersistentKeepalive = %u\n", peer->persistent_keepalive_interval);
+			printf("PersistentKeepalive = %u\n",
+			       peer->persistent_keepalive_interval);
 
 		if (peer->next_peer)
 			printf("\n");

@@ -13,7 +13,7 @@ bool __init wg_packet_counter_selftest(void)
 #define T_INIT do {                                               \
 		memset(&counter, 0, sizeof(union noise_counter)); \
 		spin_lock_init(&counter.receive.lock);            \
-	} while (0)
+} while (0)
 #define T_LIM (COUNTER_WINDOW_SIZE + 1)
 #define T(n, v) do {                                                  \
 		++test_num;                                           \
@@ -22,7 +22,7 @@ bool __init wg_packet_counter_selftest(void)
 			       test_num);                             \
 			success = false;                              \
 		}                                                     \
-	} while (0)
+} while (0)
 
 	T_INIT;
 	/*  1 */ T(0, true);

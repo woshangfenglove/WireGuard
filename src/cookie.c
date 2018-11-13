@@ -121,7 +121,7 @@ enum cookie_mac_state wg_cookie_validate_packet(struct cookie_checker *checker,
 						bool check_cookie)
 {
 	struct message_macs *macs = (struct message_macs *)
-		(skb->data + skb->len - sizeof(*macs));
+				    (skb->data + skb->len - sizeof(*macs));
 	enum cookie_mac_state ret;
 	u8 computed_mac[COOKIE_LEN];
 	u8 cookie[COOKIE_LEN];
@@ -157,7 +157,7 @@ void wg_cookie_add_mac_to_packet(void *message, size_t len,
 				 struct wg_peer *peer)
 {
 	struct message_macs *macs = (struct message_macs *)
-		((u8 *)message + len - sizeof(*macs));
+				    ((u8 *)message + len - sizeof(*macs));
 
 	down_write(&peer->latest_cookie.lock);
 	compute_mac1(macs->mac1, message, len,
@@ -169,7 +169,8 @@ void wg_cookie_add_mac_to_packet(void *message, size_t len,
 	down_read(&peer->latest_cookie.lock);
 	if (peer->latest_cookie.is_valid &&
 	    !wg_birthdate_has_expired(peer->latest_cookie.birthdate,
-				COOKIE_SECRET_MAX_AGE - COOKIE_SECRET_LATENCY))
+				      COOKIE_SECRET_MAX_AGE -
+				      COOKIE_SECRET_LATENCY))
 		compute_mac2(macs->mac2, message, len,
 			     peer->latest_cookie.cookie);
 	else
@@ -182,7 +183,8 @@ void wg_cookie_message_create(struct message_handshake_cookie *dst,
 			      struct cookie_checker *checker)
 {
 	struct message_macs *macs = (struct message_macs *)
-		((u8 *)skb->data + skb->len - sizeof(*macs));
+				    ((u8 *)skb->data + skb->len -
+				     sizeof(*macs));
 	u8 cookie[COOKIE_LEN];
 
 	dst->header.type = cpu_to_le32(MESSAGE_HANDSHAKE_COOKIE);
@@ -203,9 +205,9 @@ void wg_cookie_message_consume(struct message_handshake_cookie *src,
 	bool ret;
 
 	if (unlikely(!wg_index_hashtable_lookup(&wg->index_hashtable,
-					     INDEX_HASHTABLE_HANDSHAKE |
-					     INDEX_HASHTABLE_KEYPAIR,
-					     src->receiver_index, &peer)))
+						INDEX_HASHTABLE_HANDSHAKE |
+						INDEX_HASHTABLE_KEYPAIR,
+						src->receiver_index, &peer)))
 		return;
 
 	down_read(&peer->latest_cookie.lock);
@@ -227,8 +229,9 @@ void wg_cookie_message_consume(struct message_handshake_cookie *src,
 		peer->latest_cookie.have_sent_mac1 = false;
 		up_write(&peer->latest_cookie.lock);
 	} else {
-		net_dbg_ratelimited("%s: Could not decrypt invalid cookie response\n",
-				    wg->dev->name);
+		net_dbg_ratelimited(
+			"%s: Could not decrypt invalid cookie response\n",
+			wg->dev->name);
 	}
 
 out:

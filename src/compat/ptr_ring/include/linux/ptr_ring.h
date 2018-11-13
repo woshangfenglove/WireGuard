@@ -35,12 +35,12 @@ struct ptr_ring {
 	int producer ____cacheline_aligned_in_smp;
 	spinlock_t producer_lock;
 	int consumer_head ____cacheline_aligned_in_smp; /* next valid entry */
-	int consumer_tail; /* next entry to invalidate */
+	int consumer_tail;                              /* next entry to invalidate */
 	spinlock_t consumer_lock;
 	/* Shared consumer/producer data */
 	/* Read-only by both the producer and the consumer */
-	int size ____cacheline_aligned_in_smp; /* max entries in queue */
-	int batch; /* number of entries to consume in a batch */
+	int size ____cacheline_aligned_in_smp;  /* max entries in queue */
+	int batch;                              /* number of entries to consume in a batch */
 	void **queue;
 };
 
@@ -400,41 +400,42 @@ static inline int ptr_ring_consume_batched_bh(struct ptr_ring *r,
 #define __PTR_RING_PEEK_CALL(r, f) ((f)(__ptr_ring_peek(r)))
 
 #define PTR_RING_PEEK_CALL(r, f) ({ \
-	typeof((f)(NULL)) __PTR_RING_PEEK_CALL_v; \
-	\
-	spin_lock(&(r)->consumer_lock); \
-	__PTR_RING_PEEK_CALL_v = __PTR_RING_PEEK_CALL(r, f); \
-	spin_unlock(&(r)->consumer_lock); \
-	__PTR_RING_PEEK_CALL_v; \
-})
+		typeof((f)(NULL)) __PTR_RING_PEEK_CALL_v; \
+        \
+		spin_lock(&(r)->consumer_lock); \
+		__PTR_RING_PEEK_CALL_v = __PTR_RING_PEEK_CALL(r, f); \
+		spin_unlock(&(r)->consumer_lock); \
+		__PTR_RING_PEEK_CALL_v; \
+	})
 
 #define PTR_RING_PEEK_CALL_IRQ(r, f) ({ \
-	typeof((f)(NULL)) __PTR_RING_PEEK_CALL_v; \
-	\
-	spin_lock_irq(&(r)->consumer_lock); \
-	__PTR_RING_PEEK_CALL_v = __PTR_RING_PEEK_CALL(r, f); \
-	spin_unlock_irq(&(r)->consumer_lock); \
-	__PTR_RING_PEEK_CALL_v; \
-})
+		typeof((f)(NULL)) __PTR_RING_PEEK_CALL_v; \
+        \
+		spin_lock_irq(&(r)->consumer_lock); \
+		__PTR_RING_PEEK_CALL_v = __PTR_RING_PEEK_CALL(r, f); \
+		spin_unlock_irq(&(r)->consumer_lock); \
+		__PTR_RING_PEEK_CALL_v; \
+	})
 
 #define PTR_RING_PEEK_CALL_BH(r, f) ({ \
-	typeof((f)(NULL)) __PTR_RING_PEEK_CALL_v; \
-	\
-	spin_lock_bh(&(r)->consumer_lock); \
-	__PTR_RING_PEEK_CALL_v = __PTR_RING_PEEK_CALL(r, f); \
-	spin_unlock_bh(&(r)->consumer_lock); \
-	__PTR_RING_PEEK_CALL_v; \
-})
+		typeof((f)(NULL)) __PTR_RING_PEEK_CALL_v; \
+        \
+		spin_lock_bh(&(r)->consumer_lock); \
+		__PTR_RING_PEEK_CALL_v = __PTR_RING_PEEK_CALL(r, f); \
+		spin_unlock_bh(&(r)->consumer_lock); \
+		__PTR_RING_PEEK_CALL_v; \
+	})
 
 #define PTR_RING_PEEK_CALL_ANY(r, f) ({ \
-	typeof((f)(NULL)) __PTR_RING_PEEK_CALL_v; \
-	unsigned long __PTR_RING_PEEK_CALL_f;\
-	\
-	spin_lock_irqsave(&(r)->consumer_lock, __PTR_RING_PEEK_CALL_f); \
-	__PTR_RING_PEEK_CALL_v = __PTR_RING_PEEK_CALL(r, f); \
-	spin_unlock_irqrestore(&(r)->consumer_lock, __PTR_RING_PEEK_CALL_f); \
-	__PTR_RING_PEEK_CALL_v; \
-})
+		typeof((f)(NULL)) __PTR_RING_PEEK_CALL_v; \
+		unsigned long __PTR_RING_PEEK_CALL_f; \
+        \
+		spin_lock_irqsave(&(r)->consumer_lock, __PTR_RING_PEEK_CALL_f); \
+		__PTR_RING_PEEK_CALL_v = __PTR_RING_PEEK_CALL(r, f); \
+		spin_unlock_irqrestore(&(r)->consumer_lock, \
+				       __PTR_RING_PEEK_CALL_f); \
+		__PTR_RING_PEEK_CALL_v; \
+	})
 
 static inline void **__ptr_ring_init_queue_alloc(unsigned int size, gfp_t gfp)
 {
@@ -507,10 +508,9 @@ static inline void ptr_ring_unconsume(struct ptr_ring *r, void **batch, int n,
 		head = r->consumer_head - 1;
 		if (head < 0)
 			head = r->size - 1;
-		if (r->queue[head]) {
+		if (r->queue[head])
 			/* This batch entry will have to be destroyed. */
 			goto done;
-		}
 		r->queue[head] = batch[--n];
 		r->consumer_tail = r->consumer_head = head;
 	}

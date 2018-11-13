@@ -48,9 +48,9 @@ enum limits {
 	MAX_PEERS_PER_DEVICE = 1U << 20,
 	KEEPALIVE_TIMEOUT = 10,
 	MAX_TIMER_HANDSHAKES = 90 / REKEY_TIMEOUT,
-	MAX_QUEUED_INCOMING_HANDSHAKES = 4096, /* TODO: replace this with DQL */
+	MAX_QUEUED_INCOMING_HANDSHAKES = 4096,  /* TODO: replace this with DQL */
 	MAX_STAGED_PACKETS = 128,
-	MAX_QUEUED_PACKETS = 1024 /* TODO: replace this with DQL */
+	MAX_QUEUED_PACKETS = 1024               /* TODO: replace this with DQL */
 };
 
 enum message_type {

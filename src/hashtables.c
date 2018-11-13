@@ -103,7 +103,6 @@ void wg_index_hashtable_init(struct index_hashtable *table)
  * guessing. this would not, however, help with the growing hash lengths, which
  * is another thing to consider moving forward.
  */
-
 __le32 wg_index_hashtable_insert(struct index_hashtable *table,
 				 struct index_hashtable_entry *entry)
 {

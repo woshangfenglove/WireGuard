@@ -2073,7 +2073,8 @@ static bool __init blake2s_selftest(void)
 
 	for (i = 0; i < ARRAY_SIZE(blake2s_keyed_testvecs); ++i) {
 		blake2s(hash, buf, key, BLAKE2S_HASH_SIZE, i, BLAKE2S_KEY_SIZE);
-		if (memcmp(hash, blake2s_keyed_testvecs[i], BLAKE2S_HASH_SIZE)) {
+		if (memcmp(hash, blake2s_keyed_testvecs[i],
+			   BLAKE2S_HASH_SIZE)) {
 			pr_err("blake2s keyed self-test %zu: FAIL\n", i + 1);
 			success = false;
 		}

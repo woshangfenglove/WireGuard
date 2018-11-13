@@ -19,6 +19,7 @@ static __always_inline u64 u64_eq_mask(u64 a, u64 b)
 	u64 x_or_minus_x = x | minus_x;
 	u64 xnx = x_or_minus_x >> (u32)63U;
 	u64 c = xnx - (u64)1U;
+
 	return c;
 }
 
@@ -33,6 +34,7 @@ static __always_inline u64 u64_gte_mask(u64 a, u64 b)
 	u64 x_xor_q = x ^ q;
 	u64 x_xor_q_ = x_xor_q >> (u32)63U;
 	u64 c = x_xor_q_ - (u64)1U;
+
 	return c;
 }
 
@@ -42,6 +44,7 @@ static __always_inline void modulo_carry_top(u64 *b)
 	u64 b0 = b[0];
 	u64 b4_ = b4 & 0x7ffffffffffffLLU;
 	u64 b0_ = b0 + 19 * (b4 >> 51);
+
 	b[4] = b4_;
 	b[0] = b0_;
 }
@@ -145,6 +148,7 @@ static __always_inline void fmul_shift_reduce(u64 *output)
 		u64 z = output[ctr - 1];
 		output[ctr] = z;
 	}
+
 	output[0] = tmp;
 	b0 = output[0];
 	output[0] = 19 * b0;
@@ -175,6 +179,7 @@ static __always_inline void fmul_mul_shift_reduce_(u128 *output, u64 *input,
 		fproduct_sum_scalar_multiplication_(output, input, input2i);
 		fmul_shift_reduce(input);
 	}
+
 	i = 4;
 	input2i = input21[i];
 	fproduct_sum_scalar_multiplication_(output, input, input2i);
@@ -233,6 +238,7 @@ static __always_inline void fsquare_fsquare__(u128 *tmp, u64 *output)
 		   (((u128)(r4) * (d419))));
 	u128 s4 = ((((((u128)(d0) * (r4))) + (((u128)(d1) * (r3))))) +
 		   (((u128)(r2) * (r2))));
+
 	tmp[0] = s0;
 	tmp[1] = s1;
 	tmp[2] = s2;
@@ -250,6 +256,7 @@ static __always_inline void fsquare_fsquare_(u128 *tmp, u64 *output)
 	u64 i1;
 	u64 i0_;
 	u64 i1_;
+
 	fsquare_fsquare__(tmp, output);
 	fproduct_carry_wide_(tmp);
 	b4 = tmp[4];
@@ -271,6 +278,7 @@ static __always_inline void fsquare_fsquare_times_(u64 *output, u128 *tmp,
 						   u32 count1)
 {
 	u32 i;
+
 	fsquare_fsquare_(tmp, output);
 	for (i = 1; i < count1; ++i)
 		fsquare_fsquare_(tmp, output);
@@ -280,6 +288,7 @@ static __always_inline void fsquare_fsquare_times(u64 *output, u64 *input,
 						  u32 count1)
 {
 	u128 t[5];
+
 	memcpy(output, input, 5 * sizeof(*input));
 	fsquare_fsquare_times_(output, t, count1);
 }
@@ -288,6 +297,7 @@ static __always_inline void fsquare_fsquare_times_inplace(u64 *output,
 							  u32 count1)
 {
 	u128 t[5];
+
 	fsquare_fsquare_times_(output, t, count1);
 }
 
@@ -304,6 +314,7 @@ static __always_inline void crecip_crecip(u64 *out, u64 *z)
 	u64 *t0;
 	u64 *b;
 	u64 *c;
+
 	fsquare_fsquare_times(a0, z, 1);
 	fsquare_fsquare_times(t00, a0, 2);
 	fmul_fmul(b0, t00, z);
@@ -352,6 +363,7 @@ static __always_inline void fdifference(u64 *a, u64 *b)
 	u64 b2;
 	u64 b3;
 	u64 b4;
+
 	memcpy(tmp, b, 5 * sizeof(*b));
 	b0 = tmp[0];
 	b1 = tmp[1];
@@ -417,6 +429,7 @@ static __always_inline void fscalar(u64 *output, u64 *b, u64 s)
 		u64 xi = b[4];
 		tmp[4] = ((u128)(xi) * (s));
 	}
+
 	fproduct_carry_wide_(tmp);
 	b4 = tmp[4];
 	b0 = tmp[0];
@@ -446,6 +459,7 @@ static __always_inline void point_swap_conditional_step(u64 *a, u64 *b,
 	u64 x = swap1 & (ai ^ bi);
 	u64 ai1 = ai ^ x;
 	u64 bi1 = bi ^ x;
+
 	a[i] = ai1;
 	b[i] = bi1;
 }
@@ -462,6 +476,7 @@ static __always_inline void point_swap_conditional5(u64 *a, u64 *b, u64 swap1)
 static __always_inline void point_swap_conditional(u64 *a, u64 *b, u64 iswap)
 {
 	u64 swap1 = 0 - iswap;
+
 	point_swap_conditional5(a, b, swap1);
 	point_swap_conditional5(a + 5, b + 5, swap1);
 }
@@ -490,6 +505,7 @@ static __always_inline void addanddouble_fmonty(u64 *pp, u64 *ppq, u64 *p,
 	u64 *xxprime0;
 	u64 *zzprime0;
 	u64 *origxprime;
+
 	xxprime0 = buf + 25;
 	zzprime0 = buf + 30;
 	memcpy(origx, x, 5 * sizeof(*x));
@@ -544,6 +560,7 @@ ladder_smallloop_cmult_small_loop_step(u64 *nq, u64 *nqpq, u64 *nq2, u64 *nqpq2,
 {
 	u64 bit0 = (u64)(byt >> 7);
 	u64 bit;
+
 	point_swap_conditional(nq, nqpq, bit0);
 	addanddouble_fmonty(nq2, nqpq2, nq, nqpq, q);
 	bit = (u64)(byt >> 7);
@@ -555,6 +572,7 @@ ladder_smallloop_cmult_small_loop_double_step(u64 *nq, u64 *nqpq, u64 *nq2,
 					      u64 *nqpq2, u64 *q, u8 byt)
 {
 	u8 byt1;
+
 	ladder_smallloop_cmult_small_loop_step(nq, nqpq, nq2, nqpq2, q, byt);
 	byt1 = byt << 1;
 	ladder_smallloop_cmult_small_loop_step(nq2, nqpq2, nq, nqpq, q, byt1);
@@ -590,6 +608,7 @@ static void ladder_cmult(u64 *result, u8 *n1, u64 *q)
 	u64 *nqpq = point_buf + 10;
 	u64 *nq2 = point_buf + 20;
 	u64 *nqpq2 = point_buf + 30;
+
 	point_copy(nqpq, q);
 	nq[0] = 1;
 	ladder_bigloop_cmult_big_loop(n1, nq, nqpq, nq2, nqpq2, q, 32);
@@ -603,6 +622,7 @@ static __always_inline void format_fexpand(u64 *output, const u8 *input)
 	const u8 *x02 = input + 19;
 	const u8 *x0 = input + 24;
 	u64 i0, i1, i2, i3, i4, output0, output1, output2, output3, output4;
+
 	i0 = get_unaligned_le64(input);
 	i1 = get_unaligned_le64(x00);
 	i2 = get_unaligned_le64(x01);
@@ -635,6 +655,7 @@ static __always_inline void format_fcontract_first_carry_pass(u64 *input)
 	u64 t2__ = t2_ & 0x7ffffffffffffLLU;
 	u64 t4_ = t4 + (t3_ >> 51);
 	u64 t3__ = t3_ & 0x7ffffffffffffLLU;
+
 	input[0] = t0_;
 	input[1] = t1__;
 	input[2] = t2__;
@@ -663,6 +684,7 @@ static __always_inline void format_fcontract_second_carry_pass(u64 *input)
 	u64 t2__ = t2_ & 0x7ffffffffffffLLU;
 	u64 t4_ = t4 + (t3_ >> 51);
 	u64 t3__ = t3_ & 0x7ffffffffffffLLU;
+
 	input[0] = t0_;
 	input[1] = t1__;
 	input[2] = t2__;
@@ -676,6 +698,7 @@ static __always_inline void format_fcontract_second_carry_full(u64 *input)
 	u64 i1;
 	u64 i0_;
 	u64 i1_;
+
 	format_fcontract_second_carry_pass(input);
 	modulo_carry_top(input);
 	i0 = input[0];
@@ -704,6 +727,7 @@ static __always_inline void format_fcontract_trim(u64 *input)
 	u64 a2_ = a2 - (0x7ffffffffffffLLU & mask);
 	u64 a3_ = a3 - (0x7ffffffffffffLLU & mask);
 	u64 a4_ = a4 - (0x7ffffffffffffLLU & mask);
+
 	input[0] = a0_;
 	input[1] = a1_;
 	input[2] = a2_;
@@ -726,6 +750,7 @@ static __always_inline void format_fcontract_store(u8 *output, u64 *input)
 	u8 *b1 = output + 8;
 	u8 *b2 = output + 16;
 	u8 *b3 = output + 24;
+
 	put_unaligned_le64(o0, b0);
 	put_unaligned_le64(o1, b1);
 	put_unaligned_le64(o2, b2);
@@ -747,6 +772,7 @@ static __always_inline void format_scalar_of_point(u8 *scalar, u64 *point)
 	u64 buf[10] __aligned(32) = { 0 };
 	u64 *zmone = buf;
 	u64 *sc = buf + 5;
+
 	crecip(zmone, z);
 	fmul(sc, x, zmone);
 	format_fcontract(scalar, sc);
@@ -760,6 +786,7 @@ static void curve25519_generic(u8 mypublic[CURVE25519_KEY_SIZE],
 	u64 *x0 = buf0;
 	u64 *z = buf0 + 5;
 	u64 *q;
+
 	format_fexpand(x0, basepoint);
 	z[0] = 1;
 	q = buf0;

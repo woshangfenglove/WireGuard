@@ -36,7 +36,8 @@ static const char *get_value(const char *line, const char *key)
 	return line + keylen;
 }
 
-static inline bool parse_port(uint16_t *port, uint32_t *flags, const char *value)
+static inline bool parse_port(uint16_t *port, uint32_t *flags,
+			      const char *value)
 {
 	int ret;
 	struct addrinfo *resolved;
@@ -54,19 +55,26 @@ static inline bool parse_port(uint16_t *port, uint32_t *flags, const char *value
 
 	ret = getaddrinfo(NULL, value, &hints, &resolved);
 	if (ret) {
-		fprintf(stderr, "%s: `%s'\n", ret == EAI_SYSTEM ? strerror(errno) : gai_strerror(ret), value);
+		fprintf(stderr, "%s: `%s'\n", ret == EAI_SYSTEM ? strerror(
+				errno) : gai_strerror(ret), value);
 		return false;
 	}
 
 	ret = -1;
-	if (resolved->ai_family == AF_INET && resolved->ai_addrlen == sizeof(struct sockaddr_in)) {
-		*port = ntohs(((struct sockaddr_in *)resolved->ai_addr)->sin_port);
+	if (resolved->ai_family == AF_INET &&
+	    resolved->ai_addrlen == sizeof(struct sockaddr_in)) {
+		*port = ntohs(
+			((struct sockaddr_in *)resolved->ai_addr)->sin_port);
 		ret = 0;
-	} else if (resolved->ai_family == AF_INET6 && resolved->ai_addrlen == sizeof(struct sockaddr_in6)) {
-		*port = ntohs(((struct sockaddr_in6 *)resolved->ai_addr)->sin6_port);
+	} else if (resolved->ai_family == AF_INET6 &&
+		   resolved->ai_addrlen == sizeof(struct sockaddr_in6)) {
+		*port = ntohs(
+			((struct sockaddr_in6 *)resolved->ai_addr)->sin6_port);
 		ret = 0;
-	} else
-		fprintf(stderr, "Neither IPv4 nor IPv6 address found: `%s'\n", value);
+	} else {
+		fprintf(stderr, "Neither IPv4 nor IPv6 address found: `%s'\n",
+			value);
+	}
 
 	freeaddrinfo(resolved);
 	if (!ret)
@@ -74,7 +82,8 @@ static inline bool parse_port(uint16_t *port, uint32_t *flags, const char *value
 	return ret == 0;
 }
 
-static inline bool parse_fwmark(uint32_t *fwmark, uint32_t *flags, const char *value)
+static inline bool parse_fwmark(uint32_t *fwmark, uint32_t *flags,
+				const char *value)
 {
 	unsigned long ret;
 	char *end;
@@ -100,14 +109,17 @@ static inline bool parse_fwmark(uint32_t *fwmark, uint32_t *flags, const char *v
 	*flags |= WGDEVICE_HAS_FWMARK;
 	return true;
 err:
-	fprintf(stderr, "Fwmark is neither 0/off nor 0-0xffffffff: `%s'\n", value);
+	fprintf(stderr, "Fwmark is neither 0/off nor 0-0xffffffff: `%s'\n",
+		value);
 	return false;
 }
 
 static inline bool parse_key(uint8_t key[static WG_KEY_LEN], const char *value)
 {
 	if (!key_from_base64(key, value)) {
-		fprintf(stderr, "Key is not the correct length or format: `%s'\n", value);
+		fprintf(stderr,
+			"Key is not the correct length or format: `%s'\n",
+			value);
 		memset(key, 0, WG_KEY_LEN);
 		return false;
 	}
@@ -142,7 +154,9 @@ static bool parse_keyfile(uint8_t key[static WG_KEY_LEN], const char *path)
 
 	while ((c = getc(f)) != EOF) {
 		if (!isspace(c)) {
-			fprintf(stderr, "Found trailing character in key file: `%c'\n", c);
+			fprintf(stderr,
+				"Found trailing character in key file: `%c'\n",
+				c);
 			goto out;
 		}
 	}
@@ -163,10 +177,8 @@ static inline bool parse_ip(struct wgallowedip *allowedip, const char *value)
 	if (strchr(value, ':')) {
 		if (inet_pton(AF_INET6, value, &allowedip->ip6) == 1)
 			allowedip->family = AF_INET6;
-	} else {
-		if (inet_pton(AF_INET, value, &allowedip->ip4) == 1)
-			allowedip->family = AF_INET;
-	}
+	} else  if (inet_pton(AF_INET, value, &allowedip->ip4) == 1)
+		allowedip->family = AF_INET;
 	if (allowedip->family == AF_UNSPEC) {
 		fprintf(stderr, "Unable to parse IP address: `%s'\n", value);
 		return false;
@@ -185,6 +197,7 @@ static inline bool parse_endpoint(struct sockaddr *endpoint, const char *value)
 		.ai_socktype = SOCK_DGRAM,
 		.ai_protocol = IPPROTO_UDP
 	};
+
 	if (!mutable) {
 		perror("strdup");
 		return false;
@@ -199,13 +212,17 @@ static inline bool parse_endpoint(struct sockaddr *endpoint, const char *value)
 		end = strchr(mutable, ']');
 		if (!end) {
 			free(mutable);
-			fprintf(stderr, "Unable to find matching brace of endpoint: `%s'\n", value);
+			fprintf(stderr,
+				"Unable to find matching brace of endpoint: `%s'\n",
+				value);
 			return false;
 		}
 		*end++ = '\0';
 		if (*end++ != ':' || !*end) {
 			free(mutable);
-			fprintf(stderr, "Unable to find port of endpoint: `%s'\n", value);
+			fprintf(stderr,
+				"Unable to find port of endpoint: `%s'\n",
+				value);
 			return false;
 		}
 	} else {
@@ -213,7 +230,9 @@ static inline bool parse_endpoint(struct sockaddr *endpoint, const char *value)
 		end = strrchr(mutable, ':');
 		if (!end || !*(end + 1)) {
 			free(mutable);
-			fprintf(stderr, "Unable to find port of endpoint: `%s'\n", value);
+			fprintf(stderr,
+				"Unable to find port of endpoint: `%s'\n",
+				value);
 			return false;
 		}
 		*end++ = '\0';
@@ -235,25 +254,31 @@ static inline bool parse_endpoint(struct sockaddr *endpoint, const char *value)
 		 * So this is what we do, except FreeBSD removed EAI_NODATA some time ago, so that's conditional.
 		 */
 		if (ret == EAI_NONAME || ret == EAI_FAIL ||
-			#ifdef EAI_NODATA
-				ret == EAI_NODATA ||
-			#endif
-				timeout >= 90000000) {
+#ifdef EAI_NODATA
+		    ret == EAI_NODATA ||
+#endif
+		    timeout >= 90000000) {
 			free(mutable);
-			fprintf(stderr, "%s: `%s'\n", ret == EAI_SYSTEM ? strerror(errno) : gai_strerror(ret), value);
+			fprintf(stderr, "%s: `%s'\n", ret == EAI_SYSTEM ? strerror(
+					errno) : gai_strerror(ret), value);
 			return false;
 		}
-		fprintf(stderr, "%s: `%s'. Trying again in %.2f seconds...\n", ret == EAI_SYSTEM ? strerror(errno) : gai_strerror(ret), value, timeout / 1000000.0);
+		fprintf(stderr, "%s: `%s'. Trying again in %.2f seconds...\n", ret == EAI_SYSTEM ? strerror(
+				errno) : gai_strerror(
+				ret), value, timeout / 1000000.0);
 		usleep(timeout);
 	}
 
-	if ((resolved->ai_family == AF_INET && resolved->ai_addrlen == sizeof(struct sockaddr_in)) ||
-	    (resolved->ai_family == AF_INET6 && resolved->ai_addrlen == sizeof(struct sockaddr_in6)))
+	if ((resolved->ai_family == AF_INET &&
+	     resolved->ai_addrlen == sizeof(struct sockaddr_in)) ||
+	    (resolved->ai_family == AF_INET6 &&
+	     resolved->ai_addrlen == sizeof(struct sockaddr_in6))) {
 		memcpy(endpoint, resolved->ai_addr, resolved->ai_addrlen);
-	else {
+	} else {
 		freeaddrinfo(resolved);
 		free(mutable);
-		fprintf(stderr, "Neither IPv4 nor IPv6 address found: `%s'\n", value);
+		fprintf(stderr, "Neither IPv4 nor IPv6 address found: `%s'\n",
+			value);
 		return false;
 	}
 	freeaddrinfo(resolved);
@@ -261,7 +286,9 @@ static inline bool parse_endpoint(struct sockaddr *endpoint, const char *value)
 	return true;
 }
 
-static inline bool parse_persistent_keepalive(uint16_t *interval, uint32_t *flags, const char *value)
+static inline bool parse_persistent_keepalive(uint16_t *interval,
+					      uint32_t *flags,
+					      const char *value)
 {
 	unsigned long ret;
 	char *end;
@@ -283,12 +310,16 @@ static inline bool parse_persistent_keepalive(uint16_t *interval, uint32_t *flag
 	*flags |= WGPEER_HAS_PERSISTENT_KEEPALIVE_INTERVAL;
 	return true;
 err:
-	fprintf(stderr, "Persistent keepalive interval is neither 0/off nor 1-65535: `%s'\n", value);
+	fprintf(stderr,
+		"Persistent keepalive interval is neither 0/off nor 1-65535: `%s'\n",
+		value);
 	return false;
 }
 
 
-static inline bool parse_allowedips(struct wgpeer *peer, struct wgallowedip **last_allowedip, const char *value)
+static inline bool parse_allowedips(struct wgpeer *peer,
+				    struct wgallowedip **last_allowedip,
+				    const char *value)
 {
 	struct wgallowedip *allowedip = *last_allowedip, *new_allowedip;
 	char *mask, *mutable = strdup(value), *sep, *saved_entry;
@@ -329,14 +360,17 @@ static inline bool parse_allowedips(struct wgpeer *peer, struct wgallowedip **la
 			if (!isdigit(mask[0]))
 				goto err;
 			cidr = strtoul(mask, &end, 10);
-			if (*end || (cidr > 32 && new_allowedip->family == AF_INET) || (cidr > 128 && new_allowedip->family == AF_INET6))
+			if (*end ||
+			    (cidr > 32 && new_allowedip->family == AF_INET) ||
+			    (cidr > 128 && new_allowedip->family == AF_INET6))
 				goto err;
-		} else if (new_allowedip->family == AF_INET)
+		} else if (new_allowedip->family == AF_INET) {
 			cidr = 32;
-		else if (new_allowedip->family == AF_INET6)
+		} else if (new_allowedip->family == AF_INET6) {
 			cidr = 128;
-		else
+		} else {
 			goto err;
+		}
 		new_allowedip->cidr = cidr;
 
 		if (allowedip)
@@ -353,7 +387,8 @@ static inline bool parse_allowedips(struct wgpeer *peer, struct wgallowedip **la
 err:
 	free(new_allowedip);
 	free(mutable);
-	fprintf(stderr, "AllowedIP is not in the correct format: `%s'\n", saved_entry);
+	fprintf(stderr, "AllowedIP is not in the correct format: `%s'\n",
+		saved_entry);
 	free(saved_entry);
 	return false;
 }
@@ -390,35 +425,45 @@ static bool process_line(struct config_ctx *ctx, const char *line)
 #define key_match(key) (value = get_value(line, key "="))
 
 	if (ctx->is_device_section) {
-		if (key_match("ListenPort"))
-			ret = parse_port(&ctx->device->listen_port, &ctx->device->flags, value);
-		else if (key_match("FwMark"))
-			ret = parse_fwmark(&ctx->device->fwmark, &ctx->device->flags, value);
-		else if (key_match("PrivateKey")) {
+		if (key_match("ListenPort")) {
+			ret = parse_port(&ctx->device->listen_port,
+					 &ctx->device->flags, value);
+		} else if (key_match("FwMark")) {
+			ret = parse_fwmark(&ctx->device->fwmark,
+					   &ctx->device->flags, value);
+		} else if (key_match("PrivateKey")) {
 			ret = parse_key(ctx->device->private_key, value);
 			if (ret)
 				ctx->device->flags |= WGDEVICE_HAS_PRIVATE_KEY;
-		} else
+		} else {
 			goto error;
+		}
 	} else if (ctx->is_peer_section) {
-		if (key_match("Endpoint"))
-			ret = parse_endpoint(&ctx->last_peer->endpoint.addr, value);
-		else if (key_match("PublicKey")) {
+		if (key_match("Endpoint")) {
+			ret = parse_endpoint(&ctx->last_peer->endpoint.addr,
+					     value);
+		} else if (key_match("PublicKey")) {
 			ret = parse_key(ctx->last_peer->public_key, value);
 			if (ret)
 				ctx->last_peer->flags |= WGPEER_HAS_PUBLIC_KEY;
-		} else if (key_match("AllowedIPs"))
-			ret = parse_allowedips(ctx->last_peer, &ctx->last_allowedip, value);
-		else if (key_match("PersistentKeepalive"))
-			ret = parse_persistent_keepalive(&ctx->last_peer->persistent_keepalive_interval, &ctx->last_peer->flags, value);
-		else if (key_match("PresharedKey")) {
+		} else if (key_match("AllowedIPs")) {
+			ret = parse_allowedips(ctx->last_peer,
+					       &ctx->last_allowedip, value);
+		} else if (key_match("PersistentKeepalive")) {
+			ret = parse_persistent_keepalive(
+				&ctx->last_peer->persistent_keepalive_interval,
+				&ctx->last_peer->flags, value);
+		} else if (key_match("PresharedKey")) {
 			ret = parse_key(ctx->last_peer->preshared_key, value);
 			if (ret)
-				ctx->last_peer->flags |= WGPEER_HAS_PRESHARED_KEY;
-		} else
+				ctx->last_peer->flags |=
+					WGPEER_HAS_PRESHARED_KEY;
+		} else {
 			goto error;
-	} else
+		}
+	} else {
 		goto error;
+	}
 	return ret;
 
 #undef key_match
@@ -448,10 +493,9 @@ bool config_read_line(struct config_ctx *ctx, const char *input)
 		goto out;
 	}
 
-	for (size_t i = 0; i < len; ++i) {
+	for (size_t i = 0; i < len; ++i)
 		if (!isspace(input[i]))
 			line[cleaned_len++] = input[i];
-	}
 	if (!cleaned_len)
 		goto out;
 	ret = process_line(ctx, line);
@@ -471,7 +515,10 @@ bool config_read_init(struct config_ctx *ctx, bool append)
 		return false;
 	}
 	if (!append)
-		ctx->device->flags |= WGDEVICE_REPLACE_PEERS | WGDEVICE_HAS_PRIVATE_KEY | WGDEVICE_HAS_FWMARK | WGDEVICE_HAS_LISTEN_PORT;
+		ctx->device->flags |= WGDEVICE_REPLACE_PEERS |
+				      WGDEVICE_HAS_PRIVATE_KEY |
+				      WGDEVICE_HAS_FWMARK |
+				      WGDEVICE_HAS_LISTEN_PORT;
 	return true;
 }
 
@@ -502,10 +549,9 @@ static char *strip_spaces(const char *in)
 		perror("calloc");
 		return NULL;
 	}
-	for (i = 0, l = 0; i < t; ++i) {
+	for (i = 0, l = 0; i < t; ++i)
 		if (!isspace(in[i]))
 			out[l++] = in[i];
-	}
 	return out;
 }
 
@@ -521,16 +567,19 @@ struct wgdevice *config_read_cmd(char *argv[], int argc)
 	}
 	while (argc > 0) {
 		if (!strcmp(argv[0], "listen-port") && argc >= 2 && !peer) {
-			if (!parse_port(&device->listen_port, &device->flags, argv[1]))
+			if (!parse_port(&device->listen_port, &device->flags,
+					argv[1]))
 				goto error;
 			argv += 2;
 			argc -= 2;
 		} else if (!strcmp(argv[0], "fwmark") && argc >= 2 && !peer) {
-			if (!parse_fwmark(&device->fwmark, &device->flags, argv[1]))
+			if (!parse_fwmark(&device->fwmark, &device->flags,
+					  argv[1]))
 				goto error;
 			argv += 2;
 			argc -= 2;
-		} else if (!strcmp(argv[0], "private-key") && argc >= 2 && !peer) {
+		} else if (!strcmp(argv[0],
+				   "private-key") && argc >= 2 && !peer) {
 			if (!parse_keyfile(device->private_key, argv[1]))
 				goto error;
 			device->flags |= WGDEVICE_HAS_PRIVATE_KEY;
@@ -563,7 +612,8 @@ struct wgdevice *config_read_cmd(char *argv[], int argc)
 				goto error;
 			argv += 2;
 			argc -= 2;
-		} else if (!strcmp(argv[0], "allowed-ips") && argc >= 2 && peer) {
+		} else if (!strcmp(argv[0],
+				   "allowed-ips") && argc >= 2 && peer) {
 			char *line = strip_spaces(argv[1]);
 
 			if (!line)
@@ -575,12 +625,17 @@ struct wgdevice *config_read_cmd(char *argv[], int argc)
 			free(line);
 			argv += 2;
 			argc -= 2;
-		} else if (!strcmp(argv[0], "persistent-keepalive") && argc >= 2 && peer) {
-			if (!parse_persistent_keepalive(&peer->persistent_keepalive_interval, &peer->flags, argv[1]))
+		} else if (!strcmp(argv[0],
+				   "persistent-keepalive") && argc >= 2 &&
+			   peer) {
+			if (!parse_persistent_keepalive(&peer->
+							persistent_keepalive_interval,
+							&peer->flags, argv[1]))
 				goto error;
 			argv += 2;
 			argc -= 2;
-		} else if (!strcmp(argv[0], "preshared-key") && argc >= 2 && peer) {
+		} else if (!strcmp(argv[0],
+				   "preshared-key") && argc >= 2 && peer) {
 			if (!parse_keyfile(peer->preshared_key, argv[1]))
 				goto error;
 			peer->flags |= WGPEER_HAS_PRESHARED_KEY;

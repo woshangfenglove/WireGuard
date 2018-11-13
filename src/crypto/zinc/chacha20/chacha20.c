@@ -43,43 +43,43 @@ static inline bool hchacha20_arch(u32 derived_key[CHACHA20_KEY_WORDS],
 #endif
 
 #define QUARTER_ROUND(x, a, b, c, d) ( \
-	x[a] += x[b], \
-	x[d] = rol32((x[d] ^ x[a]), 16), \
-	x[c] += x[d], \
-	x[b] = rol32((x[b] ^ x[c]), 12), \
-	x[a] += x[b], \
-	x[d] = rol32((x[d] ^ x[a]), 8), \
-	x[c] += x[d], \
-	x[b] = rol32((x[b] ^ x[c]), 7) \
-)
+		x[a] += x[b], \
+		x[d] = rol32((x[d] ^ x[a]), 16), \
+		x[c] += x[d], \
+		x[b] = rol32((x[b] ^ x[c]), 12), \
+		x[a] += x[b], \
+		x[d] = rol32((x[d] ^ x[a]), 8), \
+		x[c] += x[d], \
+		x[b] = rol32((x[b] ^ x[c]), 7) \
+		)
 
 #define C(i, j) (i * 4 + j)
 
 #define DOUBLE_ROUND(x) ( \
-	/* Column Round */ \
-	QUARTER_ROUND(x, C(0, 0), C(1, 0), C(2, 0), C(3, 0)), \
-	QUARTER_ROUND(x, C(0, 1), C(1, 1), C(2, 1), C(3, 1)), \
-	QUARTER_ROUND(x, C(0, 2), C(1, 2), C(2, 2), C(3, 2)), \
-	QUARTER_ROUND(x, C(0, 3), C(1, 3), C(2, 3), C(3, 3)), \
-	/* Diagonal Round */ \
-	QUARTER_ROUND(x, C(0, 0), C(1, 1), C(2, 2), C(3, 3)), \
-	QUARTER_ROUND(x, C(0, 1), C(1, 2), C(2, 3), C(3, 0)), \
-	QUARTER_ROUND(x, C(0, 2), C(1, 3), C(2, 0), C(3, 1)), \
-	QUARTER_ROUND(x, C(0, 3), C(1, 0), C(2, 1), C(3, 2)) \
-)
+		/* Column Round */ \
+		QUARTER_ROUND(x, C(0, 0), C(1, 0), C(2, 0), C(3, 0)), \
+		QUARTER_ROUND(x, C(0, 1), C(1, 1), C(2, 1), C(3, 1)), \
+		QUARTER_ROUND(x, C(0, 2), C(1, 2), C(2, 2), C(3, 2)), \
+		QUARTER_ROUND(x, C(0, 3), C(1, 3), C(2, 3), C(3, 3)), \
+		/* Diagonal Round */ \
+		QUARTER_ROUND(x, C(0, 0), C(1, 1), C(2, 2), C(3, 3)), \
+		QUARTER_ROUND(x, C(0, 1), C(1, 2), C(2, 3), C(3, 0)), \
+		QUARTER_ROUND(x, C(0, 2), C(1, 3), C(2, 0), C(3, 1)), \
+		QUARTER_ROUND(x, C(0, 3), C(1, 0), C(2, 1), C(3, 2)) \
+		)
 
 #define TWENTY_ROUNDS(x) ( \
-	DOUBLE_ROUND(x), \
-	DOUBLE_ROUND(x), \
-	DOUBLE_ROUND(x), \
-	DOUBLE_ROUND(x), \
-	DOUBLE_ROUND(x), \
-	DOUBLE_ROUND(x), \
-	DOUBLE_ROUND(x), \
-	DOUBLE_ROUND(x), \
-	DOUBLE_ROUND(x), \
-	DOUBLE_ROUND(x) \
-)
+		DOUBLE_ROUND(x), \
+		DOUBLE_ROUND(x), \
+		DOUBLE_ROUND(x), \
+		DOUBLE_ROUND(x), \
+		DOUBLE_ROUND(x), \
+		DOUBLE_ROUND(x), \
+		DOUBLE_ROUND(x), \
+		DOUBLE_ROUND(x), \
+		DOUBLE_ROUND(x), \
+		DOUBLE_ROUND(x) \
+		)
 
 static void chacha20_block_generic(struct chacha20_ctx *ctx, __le32 *stream)
 {
@@ -131,23 +131,22 @@ static void hchacha20_generic(u32 derived_key[CHACHA20_KEY_WORDS],
 		    CHACHA20_CONSTANT_ND_3,
 		    CHACHA20_CONSTANT_2_BY,
 		    CHACHA20_CONSTANT_TE_K,
-		    get_unaligned_le32(key +  0),
-		    get_unaligned_le32(key +  4),
-		    get_unaligned_le32(key +  8),
+		    get_unaligned_le32(key + 0),
+		    get_unaligned_le32(key + 4),
+		    get_unaligned_le32(key + 8),
 		    get_unaligned_le32(key + 12),
 		    get_unaligned_le32(key + 16),
 		    get_unaligned_le32(key + 20),
 		    get_unaligned_le32(key + 24),
 		    get_unaligned_le32(key + 28),
-		    get_unaligned_le32(nonce +  0),
-		    get_unaligned_le32(nonce +  4),
-		    get_unaligned_le32(nonce +  8),
-		    get_unaligned_le32(nonce + 12)
-	};
+		    get_unaligned_le32(nonce + 0),
+		    get_unaligned_le32(nonce + 4),
+		    get_unaligned_le32(nonce + 8),
+		    get_unaligned_le32(nonce + 12) };
 
 	TWENTY_ROUNDS(x);
 
-	memcpy(derived_key + 0, x +  0, sizeof(u32) * 4);
+	memcpy(derived_key + 0, x + 0, sizeof(u32) * 4);
 	memcpy(derived_key + 4, x + 12, sizeof(u32) * 4);
 }
 

@@ -15,9 +15,9 @@
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3, 14, 0)
 #ifdef __LITTLE_ENDIAN
-#define bytemask_from_count(cnt)	(~(~0ul << (cnt)*8))
+#define bytemask_from_count(cnt)        (~(~0ul << (cnt) * 8))
 #else
-#define bytemask_from_count(cnt)	(~(~0ul >> (cnt)*8))
+#define bytemask_from_count(cnt)        (~(~0ul >> (cnt) * 8))
 #endif
 #endif
 
@@ -28,10 +28,10 @@
 
 #define SIPROUND \
 	do { \
-	v0 += v1; v1 = rol64(v1, 13); v1 ^= v0; v0 = rol64(v0, 32); \
-	v2 += v3; v3 = rol64(v3, 16); v3 ^= v2; \
-	v0 += v3; v3 = rol64(v3, 21); v3 ^= v0; \
-	v2 += v1; v1 = rol64(v1, 17); v1 ^= v2; v2 = rol64(v2, 32); \
+		v0 += v1; v1 = rol64(v1, 13); v1 ^= v0; v0 = rol64(v0, 32); \
+		v2 += v3; v3 = rol64(v3, 16); v3 ^= v2; \
+		v0 += v3; v3 = rol64(v3, 21); v3 ^= v0; \
+		v2 += v1; v1 = rol64(v1, 17); v1 ^= v2; v2 = rol64(v2, 32); \
 	} while (0)
 
 #define PREAMBLE(len) \
@@ -62,6 +62,7 @@ u64 __siphash_aligned(const void *data, size_t len, const siphash_key_t *key)
 	const u8 *end = data + len - (len % sizeof(u64));
 	const u8 left = len & (sizeof(u64) - 1);
 	u64 m;
+
 	PREAMBLE(len)
 	for (; data != end; data += sizeof(u64)) {
 		m = le64_to_cpup(data);
@@ -94,6 +95,7 @@ u64 __siphash_unaligned(const void *data, size_t len, const siphash_key_t *key)
 	const u8 *end = data + len - (len % sizeof(u64));
 	const u8 left = len & (sizeof(u64) - 1);
 	u64 m;
+
 	PREAMBLE(len)
 	for (; data != end; data += sizeof(u64)) {
 		m = get_unaligned_le64(data);
@@ -224,6 +226,7 @@ u64 siphash_3u32(const u32 first, const u32 second, const u32 third,
 		 const siphash_key_t *key)
 {
 	u64 combined = (u64)second << 32 | first;
+
 	PREAMBLE(12)
 	v3 ^= combined;
 	SIPROUND;
@@ -255,6 +258,7 @@ u32 __hsiphash_aligned(const void *data, size_t len, const hsiphash_key_t *key)
 	const u8 *end = data + len - (len % sizeof(u64));
 	const u8 left = len & (sizeof(u64) - 1);
 	u64 m;
+
 	HPREAMBLE(len)
 	for (; data != end; data += sizeof(u64)) {
 		m = le64_to_cpup(data);
@@ -287,6 +291,7 @@ u32 __hsiphash_unaligned(const void *data, size_t len,
 	const u8 *end = data + len - (len % sizeof(u64));
 	const u8 left = len & (sizeof(u64) - 1);
 	u64 m;
+
 	HPREAMBLE(len)
 	for (; data != end; data += sizeof(u64)) {
 		m = get_unaligned_le64(data);
@@ -334,6 +339,7 @@ u32 hsiphash_1u32(const u32 first, const hsiphash_key_t *key)
 u32 hsiphash_2u32(const u32 first, const u32 second, const hsiphash_key_t *key)
 {
 	u64 combined = (u64)second << 32 | first;
+
 	HPREAMBLE(8)
 	v3 ^= combined;
 	HSIPROUND;
@@ -352,6 +358,7 @@ u32 hsiphash_3u32(const u32 first, const u32 second, const u32 third,
 		  const hsiphash_key_t *key)
 {
 	u64 combined = (u64)second << 32 | first;
+
 	HPREAMBLE(12)
 	v3 ^= combined;
 	HSIPROUND;
@@ -372,6 +379,7 @@ u32 hsiphash_4u32(const u32 first, const u32 second, const u32 third,
 		  const u32 forth, const hsiphash_key_t *key)
 {
 	u64 combined = (u64)second << 32 | first;
+
 	HPREAMBLE(16)
 	v3 ^= combined;
 	HSIPROUND;
@@ -385,10 +393,10 @@ u32 hsiphash_4u32(const u32 first, const u32 second, const u32 third,
 #else
 #define HSIPROUND \
 	do { \
-	v0 += v1; v1 = rol32(v1, 5); v1 ^= v0; v0 = rol32(v0, 16); \
-	v2 += v3; v3 = rol32(v3, 8); v3 ^= v2; \
-	v0 += v3; v3 = rol32(v3, 7); v3 ^= v0; \
-	v2 += v1; v1 = rol32(v1, 13); v1 ^= v2; v2 = rol32(v2, 16); \
+		v0 += v1; v1 = rol32(v1, 5); v1 ^= v0; v0 = rol32(v0, 16); \
+		v2 += v3; v3 = rol32(v3, 8); v3 ^= v2; \
+		v0 += v3; v3 = rol32(v3, 7); v3 ^= v0; \
+		v2 += v1; v1 = rol32(v1, 13); v1 ^= v2; v2 = rol32(v2, 16); \
 	} while (0)
 
 #define HPREAMBLE(len) \
@@ -417,6 +425,7 @@ u32 __hsiphash_aligned(const void *data, size_t len, const hsiphash_key_t *key)
 	const u8 *end = data + len - (len % sizeof(u32));
 	const u8 left = len & (sizeof(u32) - 1);
 	u32 m;
+
 	HPREAMBLE(len)
 	for (; data != end; data += sizeof(u32)) {
 		m = le32_to_cpup(data);
@@ -439,6 +448,7 @@ u32 __hsiphash_unaligned(const void *data, size_t len,
 	const u8 *end = data + len - (len % sizeof(u32));
 	const u8 left = len & (sizeof(u32) - 1);
 	u32 m;
+
 	HPREAMBLE(len)
 	for (; data != end; data += sizeof(u32)) {
 		m = get_unaligned_le32(data);

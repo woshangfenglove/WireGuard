@@ -76,15 +76,29 @@ struct wgdevice {
 	struct wgpeer *first_peer, *last_peer;
 };
 
-#define for_each_wgpeer(__dev, __peer) for ((__peer) = (__dev)->first_peer; (__peer); (__peer) = (__peer)->next_peer)
-#define for_each_wgallowedip(__peer, __allowedip) for ((__allowedip) = (__peer)->first_allowedip; (__allowedip); (__allowedip) = (__allowedip)->next_allowedip)
+#define for_each_wgpeer(__dev, __peer) for ((__peer) = (__dev)->first_peer; \
+					    (__peer); \
+					    (__peer) = (__peer)->next_peer)
+#define for_each_wgallowedip(__peer, __allowedip) for ((__allowedip) = \
+							       (__peer)-> \
+							       first_allowedip; \
+						       (__allowedip); \
+						       (__allowedip) = \
+							       (__allowedip)-> \
+							       next_allowedip)
 
 static inline void free_wgdevice(struct wgdevice *dev)
 {
 	if (!dev)
 		return;
-	for (struct wgpeer *peer = dev->first_peer, *np = peer ? peer->next_peer : NULL; peer; peer = np, np = peer ? peer->next_peer : NULL) {
-		for (struct wgallowedip *allowedip = peer->first_allowedip, *na = allowedip ? allowedip->next_allowedip : NULL; allowedip; allowedip = na, na = allowedip ? allowedip->next_allowedip : NULL)
+	for (struct wgpeer *peer = dev->first_peer,
+	     *np = peer ? peer->next_peer : NULL;
+	     peer; peer = np, np = peer ? peer->next_peer : NULL) {
+		for (struct wgallowedip *allowedip = peer->first_allowedip,
+		     *na = allowedip ? allowedip->next_allowedip : NULL;
+		     allowedip;
+		     allowedip = na,
+		     na = allowedip ? allowedip->next_allowedip : NULL)
 			free(allowedip);
 		free(peer);
 	}

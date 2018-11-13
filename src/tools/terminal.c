@@ -56,10 +56,9 @@ static void filter_ansi(FILE *file, const char *fmt, va_list args)
 	}
 	for (i = 0; i < len; i = j) {
 		fputs(&str[i], file);
-		for (j = i + strlen(&str[i]); j < len; ++j) {
+		for (j = i + strlen(&str[i]); j < len; ++j)
 			if (str[j] != '\0')
 				break;
-		}
 	}
 
 	free(str);

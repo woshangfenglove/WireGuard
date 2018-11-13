@@ -60,8 +60,11 @@ static int send4(struct wg_device *wg, struct sk_buff *skb,
 		}
 		rt = ip_route_output_flow(sock_net(sock), &fl, sock);
 		if (unlikely(endpoint->src_if4 && ((IS_ERR(rt) &&
-			     PTR_ERR(rt) == -EINVAL) || (!IS_ERR(rt) &&
-			     rt->dst.dev->ifindex != endpoint->src_if4)))) {
+						    PTR_ERR(rt) == -EINVAL) ||
+						   (!IS_ERR(rt) &&
+						    rt
+						    ->dst.dev->ifindex !=
+						    endpoint->src_if4)))) {
 			endpoint->src4.s_addr = 0;
 			*(__force __be32 *)&endpoint->src_if4 = 0;
 			fl.saddr = 0;
@@ -73,14 +76,17 @@ static int send4(struct wg_device *wg, struct sk_buff *skb,
 		}
 		if (unlikely(IS_ERR(rt))) {
 			ret = PTR_ERR(rt);
-			net_dbg_ratelimited("%s: No route to %pISpfsc, error %d\n",
-					    wg->dev->name, &endpoint->addr, ret);
+			net_dbg_ratelimited(
+				"%s: No route to %pISpfsc, error %d\n",
+				wg->dev->name, &endpoint->addr,
+				ret);
 			goto err;
 		} else if (unlikely(rt->dst.dev == skb->dev)) {
 			ip_rt_put(rt);
 			ret = -ELOOP;
-			net_dbg_ratelimited("%s: Avoiding routing loop to %pISpfsc\n",
-					    wg->dev->name, &endpoint->addr);
+			net_dbg_ratelimited(
+				"%s: Avoiding routing loop to %pISpfsc\n",
+				wg->dev->name, &endpoint->addr);
 			goto err;
 		}
 		if (cache)
@@ -109,7 +115,7 @@ static int send6(struct wg_device *wg, struct sk_buff *skb,
 		.flowi6_mark = wg->fwmark,
 		.flowi6_oif = endpoint->addr6.sin6_scope_id,
 		.flowi6_proto = IPPROTO_UDP
-		/* TODO: addr->sin6_flowinfo */
+		                /* TODO: addr->sin6_flowinfo */
 	};
 	struct dst_entry *dst = NULL;
 	struct sock *sock;
@@ -135,7 +141,8 @@ static int send6(struct wg_device *wg, struct sk_buff *skb,
 	if (!dst) {
 		security_sk_classify_flow(sock, flowi6_to_flowi(&fl));
 		if (unlikely(!ipv6_addr_any(&fl.saddr) &&
-			     !ipv6_chk_addr(sock_net(sock), &fl.saddr, NULL, 0))) {
+			     !ipv6_chk_addr(sock_net(sock), &fl.saddr, NULL,
+					    0))) {
 			endpoint->src6 = fl.saddr = in6addr_any;
 			if (cache)
 				dst_cache_reset(cache);
@@ -143,14 +150,17 @@ static int send6(struct wg_device *wg, struct sk_buff *skb,
 		ret = ipv6_stub->ipv6_dst_lookup(sock_net(sock), sock, &dst,
 						 &fl);
 		if (unlikely(ret)) {
-			net_dbg_ratelimited("%s: No route to %pISpfsc, error %d\n",
-					    wg->dev->name, &endpoint->addr, ret);
+			net_dbg_ratelimited(
+				"%s: No route to %pISpfsc, error %d\n",
+				wg->dev->name, &endpoint->addr,
+				ret);
 			goto err;
 		} else if (unlikely(dst->dev == skb->dev)) {
 			dst_release(dst);
 			ret = -ELOOP;
-			net_dbg_ratelimited("%s: Avoiding routing loop to %pISpfsc\n",
-					    wg->dev->name, &endpoint->addr);
+			net_dbg_ratelimited(
+				"%s: Avoiding routing loop to %pISpfsc\n",
+				wg->dev->name, &endpoint->addr);
 			goto err;
 		}
 		if (cache)
@@ -367,6 +377,7 @@ int wg_socket_init(struct wg_device *wg, u16 port)
 		.local_udp_port = htons(port),
 		.use_udp_checksums = true
 	};
+
 #if IS_ENABLED(CONFIG_IPV6)
 	int retries = 0;
 	struct udp_port_cfg port6 = {
@@ -379,7 +390,7 @@ int wg_socket_init(struct wg_device *wg, u16 port)
 #endif
 
 #if IS_ENABLED(CONFIG_IPV6)
-retry:
+	retry :
 #endif
 
 	ret = udp_sock_create(wg->creating_net, &port4, &new4);
@@ -418,9 +429,11 @@ void wg_socket_reinit(struct wg_device *wg, struct sock *new4,
 
 	mutex_lock(&wg->socket_update_lock);
 	old4 = rcu_dereference_protected(wg->sock4,
-				lockdep_is_held(&wg->socket_update_lock));
+					 lockdep_is_held(
+						 &wg->socket_update_lock));
 	old6 = rcu_dereference_protected(wg->sock6,
-				lockdep_is_held(&wg->socket_update_lock));
+					 lockdep_is_held(
+						 &wg->socket_update_lock));
 	rcu_assign_pointer(wg->sock4, new4);
 	rcu_assign_pointer(wg->sock6, new6);
 	if (new4)

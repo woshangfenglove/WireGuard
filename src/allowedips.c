@@ -59,7 +59,8 @@ static void push_rcu(struct allowedips_node **stack,
 static void root_free_rcu(struct rcu_head *rcu)
 {
 	struct allowedips_node *node, *stack[128] = {
-		container_of(rcu, struct allowedips_node, rcu) };
+		container_of(rcu, struct allowedips_node, rcu)
+	};
 	unsigned int len = 1;
 
 	while (len > 0 && (node = stack[--len])) {
@@ -143,11 +144,20 @@ static void walk_remove_by_peer(struct allowedips_node __rcu **top,
 				PUSH(&node->bit[1]);
 		} else {
 			if (rcu_dereference_protected(node->peer,
-				lockdep_is_held(lock)) == peer) {
+						      lockdep_is_held(lock)) ==
+			    peer) {
 				RCU_INIT_POINTER(node->peer, NULL);
 				if (!node->bit[0] || !node->bit[1]) {
 					rcu_assign_pointer(*nptr, DEREF(
-					       &node->bit[!REF(node->bit[0])]));
+								   &node->bit[!
+									      REF(
+										      node
+										      ->
+										      bit
+										      [
+											      0
+										      ])
+								   ]));
 					call_rcu_bh(&node->rcu, node_free_rcu);
 					node = DEREF(nptr);
 				}
@@ -233,7 +243,8 @@ static bool node_placement(struct allowedips_node __rcu *trie, const u8 *key,
 			   struct mutex *lock)
 {
 	struct allowedips_node *node = rcu_dereference_protected(trie,
-						lockdep_is_held(lock));
+								 lockdep_is_held(
+									 lock));
 	struct allowedips_node *parent = NULL;
 	bool exact = false;
 
@@ -326,15 +337,20 @@ void wg_allowedips_init(struct allowedips *table)
 void wg_allowedips_free(struct allowedips *table, struct mutex *lock)
 {
 	struct allowedips_node __rcu *old4 = table->root4, *old6 = table->root6;
+
 	++table->seq;
 	RCU_INIT_POINTER(table->root4, NULL);
 	RCU_INIT_POINTER(table->root6, NULL);
 	if (rcu_access_pointer(old4))
 		call_rcu_bh(&rcu_dereference_protected(old4,
-				lockdep_is_held(lock))->rcu, root_free_rcu);
+						       lockdep_is_held(
+							       lock))->rcu,
+			    root_free_rcu);
 	if (rcu_access_pointer(old6))
 		call_rcu_bh(&rcu_dereference_protected(old6,
-				lockdep_is_held(lock))->rcu, root_free_rcu);
+						       lockdep_is_held(
+							       lock))->rcu,
+			    root_free_rcu);
 }
 
 int wg_allowedips_insert_v4(struct allowedips *table, const struct in_addr *ip,

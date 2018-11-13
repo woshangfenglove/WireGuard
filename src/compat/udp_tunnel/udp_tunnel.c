@@ -12,18 +12,20 @@
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3, 12, 0)
 #define __sk_user_data(sk) ((*((void __rcu **)&(sk)->sk_user_data)))
 #define rcu_dereference_sk_user_data(sk) rcu_dereference(__sk_user_data((sk)))
-#define rcu_assign_sk_user_data(sk, ptr) rcu_assign_pointer(__sk_user_data((sk)), ptr)
+#define rcu_assign_sk_user_data(sk, ptr) rcu_assign_pointer(__sk_user_data( \
+								    (sk)), ptr)
 #endif
 
 /* This is global so, uh, only one real call site... This is the kind of horrific hack you'd expect to see in compat code. */
 static udp_tunnel_encap_rcv_t encap_rcv = NULL;
 static void our_sk_data_ready(struct sock *sk
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3, 15, 0)
-			      ,int unused_vulnerable_length_param
+			      , int unused_vulnerable_length_param
 #endif
 			      )
 {
 	struct sk_buff *skb;
+
 	while ((skb = skb_dequeue(&sk->sk_receive_queue)) != NULL) {
 		skb_orphan(skb);
 		sk_mem_reclaim(sk);
@@ -95,17 +97,16 @@ static inline __sum16 udp_v4_check(int len, __be32 saddr,
 }
 
 static void udp_set_csum(bool nocheck, struct sk_buff *skb,
-		  __be32 saddr, __be32 daddr, int len)
+			 __be32 saddr, __be32 daddr, int len)
 {
 	struct udphdr *uh = udp_hdr(skb);
 
-	if (nocheck)
+	if (nocheck) {
 		uh->check = 0;
-	else if (skb_is_gso(skb))
+	} else if (skb_is_gso(skb)) {
 		uh->check = ~udp_v4_check(len, saddr, daddr, 0);
-	else if (skb_dst(skb) && skb_dst(skb)->dev &&
-		 (skb_dst(skb)->dev->features & NETIF_F_V4_CSUM)) {
-
+	} else if (skb_dst(skb) && skb_dst(skb)->dev &&
+		   (skb_dst(skb)->dev->features & NETIF_F_V4_CSUM)) {
 		BUG_ON(skb->ip_summed == CHECKSUM_PARTIAL);
 
 		skb->ip_summed = CHECKSUM_PARTIAL;
@@ -135,8 +136,8 @@ static void fake_destructor(struct sk_buff *skb)
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3, 12, 0)
 static void our_iptunnel_xmit(struct rtable *rt, struct sk_buff *skb,
-		  __be32 src, __be32 dst, __u8 proto,
-		  __u8 tos, __u8 ttl, __be16 df, bool xnet)
+			      __be32 src, __be32 dst, __u8 proto,
+			      __u8 tos, __u8 ttl, __be16 df, bool xnet)
 {
 	struct iphdr *iph;
 	struct pcpu_tstats *tstats = this_cpu_ptr(skb->dev->tstats);
@@ -153,18 +154,18 @@ static void our_iptunnel_xmit(struct rtable *rt, struct sk_buff *skb,
 
 	iph = ip_hdr(skb);
 
-	iph->version	=	4;
-	iph->ihl	=	sizeof(struct iphdr) >> 2;
-	iph->frag_off	=	df;
-	iph->protocol	=	proto;
-	iph->tos	=	tos;
-	iph->daddr	=	dst;
-	iph->saddr	=	src;
-	iph->ttl	=	ttl;
+	iph->version = 4;
+	iph->ihl = sizeof(struct iphdr) >> 2;
+	iph->frag_off = df;
+	iph->protocol = proto;
+	iph->tos = tos;
+	iph->daddr = dst;
+	iph->saddr = src;
+	iph->ttl = ttl;
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3, 10, 53)
-	__ip_select_ident(iph, &rt->dst, (skb_shinfo(skb)->gso_segs ?: 1) - 1);
+	__ip_select_ident(iph, &rt->dst, (skb_shinfo(skb)->gso_segs ? : 1) - 1);
 #else
-	__ip_select_ident(iph, skb_shinfo(skb)->gso_segs ?: 1);
+	__ip_select_ident(iph, skb_shinfo(skb)->gso_segs ? : 1);
 #endif
 
 	iptunnel_xmit(skb, skb->dev);
@@ -175,12 +176,14 @@ static void our_iptunnel_xmit(struct rtable *rt, struct sk_buff *skb,
 #define iptunnel_xmit our_iptunnel_xmit
 #endif
 
-void udp_tunnel_xmit_skb(struct rtable *rt, struct sock *sk, struct sk_buff *skb,
+void udp_tunnel_xmit_skb(struct rtable *rt, struct sock *sk,
+			 struct sk_buff *skb,
 			 __be32 src, __be32 dst, __u8 tos, __u8 ttl,
 			 __be16 df, __be16 src_port, __be16 dst_port,
 			 bool xnet, bool nocheck)
 {
 	struct udphdr *uh;
+
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 12, 0)
 	struct net_device *dev = skb->dev;
 	int ret;
@@ -205,11 +208,11 @@ void udp_tunnel_xmit_skb(struct rtable *rt, struct sock *sk, struct sk_buff *skb
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 12, 0)
 	ret =
 #endif
-	     iptunnel_xmit(
+	iptunnel_xmit(
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 15, 0)
-			   sk,
+		sk,
 #endif
-			   rt, skb, src, dst, IPPROTO_UDP, tos, ttl, df, xnet);
+		rt, skb, src, dst, IPPROTO_UDP, tos, ttl, df, xnet);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 12, 0)
 	if (ret)
 		iptunnel_xmit_stats(ret - 8, &dev->stats, dev->tstats);
@@ -253,7 +256,7 @@ int udp_sock_create6(struct net *net, struct udp_port_cfg *cfg,
 		int val = 1;
 
 		err = kernel_setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY,
-					(char *) &val, sizeof(val));
+					(char *)&val, sizeof(val));
 		if (err < 0)
 			goto error;
 	}
@@ -300,25 +303,24 @@ error:
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3, 16, 0)
 static inline __sum16 udp_v6_check(int len,
-		const struct in6_addr *saddr,
-		const struct in6_addr *daddr,
-		__wsum base)
+				   const struct in6_addr *saddr,
+				   const struct in6_addr *daddr,
+				   __wsum base)
 {
 	return csum_ipv6_magic(saddr, daddr, len, IPPROTO_UDP, base);
 }
 static void udp6_set_csum(bool nocheck, struct sk_buff *skb,
-		   const struct in6_addr *saddr,
-		   const struct in6_addr *daddr, int len)
+			  const struct in6_addr *saddr,
+			  const struct in6_addr *daddr, int len)
 {
 	struct udphdr *uh = udp_hdr(skb);
 
-	if (nocheck)
+	if (nocheck) {
 		uh->check = 0;
-	else if (skb_is_gso(skb))
+	} else if (skb_is_gso(skb)) {
 		uh->check = ~udp_v6_check(len, saddr, daddr, 0);
-	else if (skb_dst(skb) && skb_dst(skb)->dev &&
-		 (skb_dst(skb)->dev->features & NETIF_F_IPV6_CSUM)) {
-
+	} else if (skb_dst(skb) && skb_dst(skb)->dev &&
+		   (skb_dst(skb)->dev->features & NETIF_F_IPV6_CSUM)) {
 		BUG_ON(skb->ip_summed == CHECKSUM_PARTIAL);
 
 		skb->ip_summed = CHECKSUM_PARTIAL;
@@ -366,13 +368,13 @@ int udp_tunnel6_xmit_skb(struct dst_entry *dst, struct sock *sk,
 
 	__skb_push(skb, sizeof(*ip6h));
 	skb_reset_network_header(skb);
-	ip6h		  = ipv6_hdr(skb);
+	ip6h = ipv6_hdr(skb);
 	ip6_flow_hdr(ip6h, prio, label);
 	ip6h->payload_len = htons(skb->len);
-	ip6h->nexthdr     = IPPROTO_UDP;
-	ip6h->hop_limit   = ttl;
-	ip6h->daddr	  = *daddr;
-	ip6h->saddr	  = *saddr;
+	ip6h->nexthdr = IPPROTO_UDP;
+	ip6h->hop_limit = ttl;
+	ip6h->daddr = *daddr;
+	ip6h->saddr = *saddr;
 
 	if (!skb->sk)
 		skb->sk = sk;
